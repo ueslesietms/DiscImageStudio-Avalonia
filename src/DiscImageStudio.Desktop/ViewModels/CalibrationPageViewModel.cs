@@ -5,8 +5,15 @@ using Avalonia;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DiscImageStudio.BluRay;
+using DiscImageStudio.Cd;
 using DiscImageStudio.Core;
+using DiscImageStudio.Core.Calibration;
+using DiscImageStudio.Desktop.Services;
+using DiscImageStudio.Dvd;
+using DiscImageStudio.ImageIO;
 using DiscImageStudio.Localization;
+using DiscImageStudio.Services;
 using DiscImageStudio.ViewModels;
 
 namespace DiscImageStudio.Desktop.ViewModels;
@@ -59,6 +66,27 @@ public partial class CalibrationPageViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _hasResult;
+
+    /// <summary>标靶阶段：粗（角度扫掠）/ 单线 / 细（十字）/ 标准参考图。</summary>
+    [ObservableProperty]
+    private string _stage = "标准";
+
+    public IReadOnlyList<string> StageChoices { get; } = ["标准", "粗", "单线", "细"];
+
+    public Bitmap? TargetPreview
+    {
+        get => _targetPreview;
+        private set => SetProperty(ref _targetPreview, value);
+    }
+
+    private Bitmap? _targetPreview;
+
+    private CalibrationTarget? _target;
+
+    public string TargetSummary => _target is null
+        ? "还没有生成标靶。"
+        : string.Create(CultureInfo.InvariantCulture,
+            $"{FamilyLabel} · {_target.Parameters.InnerRadiusMm:0.###}–{_target.Parameters.OuterRadiusMm:0.###} mm · {_target.Parameters.Sectors:N0} 扇区");
 
     public bool HasPhoto => Photo is not null;
 
@@ -368,6 +396,120 @@ public partial class CalibrationPageViewModel : ObservableObject
             - a[0, 1] * (a[1, 0] * b[2] - b[1] * a[2, 0])
             + b[0] * (a[1, 0] * a[2, 1] - a[1, 1] * a[2, 0])) / det;
         return true;
+    }
+
+    /// <summary>按当前盘型参数构造标定参数（与 WPF 版 ReadSetup 一致）。</summary>
+    private CalibrationParameters ReadSetup()
+    {
+        static double Number(string raw) =>
+            double.Parse(raw.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture);
+        return _shell.CurrentProject?.Family switch
+        {
+            OpticalDiscFamily.Dvd => new CalibrationParameters(
+                CalibrationDiscKind.Dvd,
+                Number(State.DvdInnerRadius),
+                Number(State.DvdOuterRadius),
+                ParameterParser.ParsePositiveLong(State.DvdTotalSectors, "DVD 总扇区数"),
+                DvdStreamingOptions.StandardChannelBitLengthNm,
+                ParameterParser.ParseDouble(State.DvdPitchLinear, "DVD 相对一次项"),
+                ParameterParser.ParseDouble(State.DvdPitchQuadratic, "DVD 相对二次项"),
+                ParameterParser.ParseDouble(State.DvdPitchCubic, "DVD 相对三次项"),
+                DvdReadCompatibility: State.DvdReadCompatibility,
+                UsableSectors: State.GetUsableSectors(OpticalDiscFamily.Dvd)),
+            OpticalDiscFamily.BluRay => new CalibrationParameters(
+                CalibrationDiscKind.BluRay,
+                Number(State.BdInnerRadius),
+                Number(State.BdOuterRadius),
+                ParameterParser.ParsePositiveLong(State.BdTotalSectors, "蓝光总扇区数"),
+                BluRayDiscParameters.ChannelBitLengthNm,
+                ParameterParser.ParseDouble(State.BdPitchLinear, "相对一次项"),
+                ParameterParser.ParseDouble(State.BdPitchQuadratic, "相对二次项"),
+                ParameterParser.ParseDouble(State.BdPitchCubic, "相对三次项"),
+                BluRayInvertMapping: State.BdInvertMapping,
+                DrawingEndSectorExclusive: State.GetUsableSectors(OpticalDiscFamily.BluRay),
+                UsableSectors: State.GetUsableSectors(OpticalDiscFamily.BluRay)),
+            _ => new CalibrationParameters(
+                CalibrationDiscKind.Cd,
+                Number(State.CdInnerRadius),
+                Number(State.CdOuterRadius),
+                ParameterParser.ParsePositiveLong(State.CdSectors, "CD 总扇区数"),
+                CdDiscParameters.StandardLinearVelocityMmPerSecond,
+                ParameterParser.ParseDouble(State.CdPitchLinear, "相对一次项"),
+                ParameterParser.ParseDouble(State.CdPitchQuadratic, "相对二次项"),
+                ParameterParser.ParseDouble(State.CdPitchCubic, "相对三次项"),
+                UsableSectors: State.GetUsableSectors(OpticalDiscFamily.CompactDisc)),
+        };
+    }
+
+    [RelayCommand]
+    private async Task GenerateTargetAsync()
+    {
+        try
+        {
+            StatusMessage = L.T("正在生成标靶…");
+            CalibrationParameters parameters = ReadSetup();
+            parameters.Validate();
+            CalibrationArtwork artwork = Stage switch
+            {
+                "粗" => CalibrationArtwork.AngleSweepBands,
+                "单线" => CalibrationArtwork.WavyBoundary,
+                "细" => CalibrationArtwork.ReferenceCross,
+                _ => CalibrationArtwork.SweptReference,
+            };
+            CalibrationTarget target = await Task.Run(() => CalibrationTarget.Create(parameters, artwork: artwork));
+            byte[] pixels = await Task.Run(() => CalibrationTargetRenderer.RenderGray(target, 1024));
+            string path = Path.Combine(Path.GetTempPath(), "disc-image-studio-target.png");
+            RasterCodec.SavePng(path, 1024, 1024, pixels, grayscale: true);
+
+            Bitmap? previous = TargetPreview;
+            TargetPreview = new Bitmap(path);
+            previous?.Dispose();
+            _target = target;
+            OnPropertyChanged(nameof(TargetSummary));
+            StatusMessage = "标靶生成好了，可以保存 PNG 或直接看效果。";
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task SaveTargetPngAsync()
+    {
+        if (_shell.Dialogs is not { } dialogs)
+        {
+            return;
+        }
+
+        if (_target is null)
+        {
+            await GenerateTargetAsync();
+            if (_target is null)
+            {
+                return;
+            }
+        }
+
+        string? path = await dialogs.PickSaveFileAsync(
+            L.T("保存标靶 PNG"), "calibration-target.png", ".png", L.T("PNG 图片|*.png"));
+        if (path is null)
+        {
+            return;
+        }
+
+        try
+        {
+            StatusMessage = L.T("正在渲染高分辨率标靶…");
+            CalibrationTarget target = _target;
+            byte[] pixels = await Task.Run(() => CalibrationTargetRenderer.RenderGray(target, 4096));
+            RasterCodec.SavePng(path, 4096, 4096, pixels, grayscale: true);
+            StatusMessage = L.F($"标靶已保存：{Path.GetFileName(path)}");
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+        }
     }
 
     [RelayCommand]

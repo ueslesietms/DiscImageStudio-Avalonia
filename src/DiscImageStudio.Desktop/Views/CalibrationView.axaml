@@ -3,6 +3,7 @@
              xmlns:loc="using:DiscImageStudio.Desktop.Localization"
              xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
              xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
              x:Class="DiscImageStudio.Desktop.Views.CalibrationView"
              x:DataType="vm:CalibrationPageViewModel">
   <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,*">
@@ -43,6 +44,27 @@
 
       <ScrollViewer Grid.Column="1" Width="300" Margin="16,0,0,0">
         <StackPanel Spacing="16">
+
+          <controls:SectionCard Header="标靶" Icon="{StaticResource IconCrosshair}">
+            <StackPanel Spacing="10">
+              <ComboBox ItemsSource="{Binding StageChoices}" SelectedItem="{Binding Stage}"
+                        HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}" />
+              <TextBlock Classes="micro" Text="{Binding TargetSummary}" TextWrapping="Wrap" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="primary" Content="生成" Height="{StaticResource CompactHeight}"
+                        Command="{Binding GenerateTargetCommand}" />
+                <Button Classes="ghost" Content="保存 PNG" Height="{StaticResource CompactHeight}"
+                        Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                        Command="{Binding SaveTargetPngCommand}" />
+              </StackPanel>
+              <Border Background="{DynamicResource DiscCanvasBackdropBrush}" CornerRadius="6"
+                      Padding="6" IsVisible="{Binding TargetPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                <Image Source="{Binding TargetPreview}" Width="248" Height="248" Stretch="Uniform" />
+              </Border>
+              <TextBlock Classes="micro" TextWrapping="Wrap"
+                         Text="生成后保存 PNG，按现有导出/刻录流程刻到盘上；拍好照片再回到下面标注。" />
+            </StackPanel>
+          </controls:SectionCard>
 
           <controls:SectionCard Header="标注" Icon="{StaticResource IconCrosshair}">
             <StackPanel Spacing="10">
