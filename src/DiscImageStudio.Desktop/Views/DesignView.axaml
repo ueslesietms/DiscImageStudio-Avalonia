@@ -72,6 +72,32 @@
             </StackPanel>
           </controls:SectionCard>
 
+          <controls:SectionCard Header="影调" Icon="{StaticResource IconSliders}">
+            <StackPanel Spacing="14">
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Classes="micro" Text="抖动强度" />
+                  <TextBlock Grid.Column="1" Classes="micro" Text="{Binding State.ToneDitherText}" />
+                </Grid>
+                <Slider Minimum="0" Maximum="1" Value="{Binding State.ToneDitherStrength}" />
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Classes="micro" Text="亮度" />
+                  <TextBlock Grid.Column="1" Classes="micro" Text="{Binding State.ToneBrightnessText}" />
+                </Grid>
+                <Slider Minimum="-64" Maximum="64" Value="{Binding State.ToneBrightness}" />
+              </StackPanel>
+
+              <CheckBox Content="四级灰阶（仅 CD）" IsChecked="{Binding State.IsFourLevelSelected}"
+                        IsVisible="{Binding IsCd}" />
+              <CheckBox Content="sRGB 线性化" IsChecked="{Binding State.ToneSrgbLinearization}" />
+
+              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding State.ToneSummary}" />
+            </StackPanel>
+          </controls:SectionCard>
+
           <controls:SectionCard Header="盘内容" Icon="{StaticResource IconFolder}">
             <StackPanel Spacing="10">
               <controls:PathField Label="随盘文件夹" Text="{Binding DataDirectory, Mode=TwoWay}"
