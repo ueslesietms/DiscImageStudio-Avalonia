@@ -3,10 +3,11 @@
         xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
         xmlns:controls="using:DiscImageStudio.Desktop.Controls"
         xmlns:conv="using:Avalonia.Data.Converters"
+        xmlns:svc="using:DiscImageStudio.Desktop.Services"
         x:Class="DiscImageStudio.Desktop.Views.ProjectSettingsWindow"
         x:DataType="vm:ProjectSettingsViewModel"
         Title="工程设置"
-        Width="520" Height="620"
+        Width="540" Height="780"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="{DynamicResource BackgroundBrush}"
@@ -23,6 +24,33 @@
           <TextBlock Classes="micro" Text="工程名" />
           <TextBox Text="{Binding Name}" Height="{StaticResource ControlHeight}" />
           <TextBlock Classes="micro" Text="{Binding FamilyLabel}" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="micro" Text="盘片预设" />
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}"
+                      HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:DiscPresetItem">
+                  <TextBlock Text="{Binding DisplayName}" FontSize="13" TextWrapping="NoWrap" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1" Classes="ghost" Content="删除" Height="{StaticResource ControlHeight}"
+                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                    IsEnabled="{Binding CanDeletePreset}" Command="{Binding DeletePresetCommand}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding NewPresetName}" PlaceholderText="把当前参数存成新预设，先起个名字"
+                     Height="{StaticResource ControlHeight}" />
+            <Button Grid.Column="1" Classes="ghost" Content="保存为预设" Height="{StaticResource ControlHeight}"
+                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                    Command="{Binding SaveAsPresetCommand}" />
+          </Grid>
+          <TextBlock Classes="micro" Foreground="{DynamicResource SuccessBrush}" TextWrapping="Wrap"
+                     Text="{Binding PresetMessage}"
+                     IsVisible="{Binding PresetMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
 
         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">

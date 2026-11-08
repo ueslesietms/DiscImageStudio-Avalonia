@@ -2,6 +2,8 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiscImageStudio.Core;
+using DiscImageStudio.Desktop.Services;
+using DiscImageStudio.Localization;
 using DiscImageStudio.ViewModels;
 
 namespace DiscImageStudio.Desktop.ViewModels;
@@ -18,6 +20,7 @@ public partial class ProjectSettingsViewModel : ObservableObject
         _state = state;
         _family = family;
         _onSaved = saved;
+        Presets = PresetCatalog.For(family);
         _name = name;
         switch (family)
         {
@@ -65,6 +68,97 @@ public partial class ProjectSettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private string _errorMessage = string.Empty;
+
+    /// <summary>当前盘型的预设（内置 + 用户层）。</summary>
+    public IReadOnlyList<DiscPresetItem> Presets { get; private set; }
+
+    [ObservableProperty]
+    private DiscPresetItem? _selectedPreset;
+
+    partial void OnSelectedPresetChanged(DiscPresetItem? value)
+    {
+        if (value is null)
+        {
+            return;
+        }
+
+        // 选预设只是把几何填进对话框，保存时才会写回工程。
+        string Number(double number) => number.ToString("R", CultureInfo.InvariantCulture);
+        _innerRadius = Number(value.InnerRadiusMm);
+        _outerRadius = Number(value.OuterRadiusMm);
+        _sectors = value.Sectors.ToString(CultureInfo.InvariantCulture);
+        _usableSectors = value.UsableSectors?.ToString(CultureInfo.InvariantCulture) ?? string.Empty;
+        _pitchLinear = Number(value.PitchLinear);
+        _pitchQuadratic = Number(value.PitchQuadratic);
+        _pitchCubic = Number(value.PitchCubic);
+        OnPropertyChanged(nameof(InnerRadius));
+        OnPropertyChanged(nameof(OuterRadius));
+        OnPropertyChanged(nameof(Sectors));
+        OnPropertyChanged(nameof(UsableSectors));
+        OnPropertyChanged(nameof(PitchLinear));
+        OnPropertyChanged(nameof(PitchQuadratic));
+        OnPropertyChanged(nameof(PitchCubic));
+        OnPropertyChanged(nameof(CanDeletePreset));
+    }
+
+    public bool CanDeletePreset => SelectedPreset?.IsUserPreset == true;
+
+    [ObservableProperty]
+    private string _newPresetName = string.Empty;
+
+    [ObservableProperty]
+    private string _presetMessage = string.Empty;
+
+    [RelayCommand]
+    private void SaveAsPreset()
+    {
+        if (string.IsNullOrWhiteSpace(NewPresetName))
+        {
+            PresetMessage = "先给预设起个名字。";
+            return;
+        }
+
+        if (!TryParsePositive(InnerRadius, out double inner) || !TryParsePositive(OuterRadius, out double outer)
+            || !long.TryParse(Sectors.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long sectors))
+        {
+            PresetMessage = "半径和扇区数都填对之后再保存。";
+            return;
+        }
+
+        long? usable = UsableSectors.Trim().Length > 0
+            && long.TryParse(UsableSectors.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed)
+                ? parsed
+                : null;
+        double Number(string text) =>
+            double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value)
+                ? value
+                : 0;
+
+        PresetCatalog.AddUserPreset(_family, NewPresetName.Trim(), inner, outer, sectors, usable,
+            Number(PitchLinear), Number(PitchQuadratic), Number(PitchCubic), false);
+        Presets = PresetCatalog.For(_family);
+        OnPropertyChanged(nameof(Presets));
+        PresetMessage = L.F($"已保存预设「{NewPresetName.Trim()}」。");
+        NewPresetName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void DeletePreset()
+    {
+        if (SelectedPreset is not { IsUserPreset: true } preset)
+        {
+            PresetMessage = "内置预设不能删除。";
+            return;
+        }
+
+        if (PresetCatalog.RemoveUserPreset(_family, preset.Id))
+        {
+            Presets = PresetCatalog.For(_family);
+            OnPropertyChanged(nameof(Presets));
+            SelectedPreset = null;
+            PresetMessage = L.F($"已删除「{preset.DisplayName}」。");
+        }
+    }
 
     public string FamilyLabel => _family switch
     {
