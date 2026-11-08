@@ -110,6 +110,105 @@ public static class PresetCatalog
         }
     }
 
+    /// <summary>用新参数覆盖一条用户预设（同 id 替换）；内置预设不能被覆盖，返回 false。</summary>
+    public static bool UpdateUserPreset(
+        OpticalDiscFamily family, string id, string name,
+        double innerRadiusMm, double outerRadiusMm, long sectors, long? usableSectors,
+        double pitchLinear, double pitchQuadratic, double pitchCubic, bool invertMapping)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        lock (Gate)
+        {
+            DiscPresetJsonDocument current = _userDocument;
+            DiscPresetJsonDocument updated;
+            bool hit = false;
+            switch (family)
+            {
+                case OpticalDiscFamily.Dvd:
+                {
+                    List<DvdDiscPresetDefinition> items = [];
+                    foreach (DvdDiscPresetDefinition item in current.DvdPresets)
+                    {
+                        if (item.Id == id)
+                        {
+                            hit = true;
+                            items.Add(new DvdDiscPresetDefinition(item.Id, name, item.Description,
+                                checked((uint)sectors), innerRadiusMm, outerRadiusMm, item.ChannelBitLengthNm,
+                                item.DisplayNameResourceKey, item.DescriptionResourceKey,
+                                pitchLinear, pitchQuadratic, pitchCubic, item.Contributor,
+                                usableSectors is null ? null : checked((uint)usableSectors.Value)));
+                        }
+                        else
+                        {
+                            items.Add(item);
+                        }
+                    }
+
+                    updated = current with { DvdPresets = items };
+                    break;
+                }
+
+                case OpticalDiscFamily.BluRay:
+                {
+                    List<BluRayDiscPresetDefinition> items = [];
+                    foreach (BluRayDiscPresetDefinition item in current.BluRayPresets ?? [])
+                    {
+                        if (item.Id == id)
+                        {
+                            hit = true;
+                            items.Add(new BluRayDiscPresetDefinition(item.Id, name, item.Description,
+                                checked((uint)sectors), innerRadiusMm, outerRadiusMm, invertMapping,
+                                item.DisplayNameResourceKey, item.DescriptionResourceKey, item.Contributor,
+                                pitchLinear, pitchQuadratic, pitchCubic,
+                                usableSectors is null ? null : checked((uint)usableSectors.Value)));
+                        }
+                        else
+                        {
+                            items.Add(item);
+                        }
+                    }
+
+                    updated = current with { BluRayPresets = items };
+                    break;
+                }
+
+                default:
+                {
+                    List<CdDiscPresetDefinition> items = [];
+                    foreach (CdDiscPresetDefinition item in current.CdPresets)
+                    {
+                        if (item.Id == id)
+                        {
+                            hit = true;
+                            items.Add(new CdDiscPresetDefinition(item.Id, name, item.Description,
+                                sectors, innerRadiusMm, outerRadiusMm, item.LinearVelocityMmPerSecond,
+                                item.DisplayNameResourceKey, item.DescriptionResourceKey, item.Contributor,
+                                pitchLinear, pitchQuadratic, pitchCubic, usableSectors));
+                        }
+                        else
+                        {
+                            items.Add(item);
+                        }
+                    }
+
+                    updated = current with { CdPresets = items };
+                    break;
+                }
+            }
+
+            if (!hit)
+            {
+                return false;
+            }
+
+            _userDocument = updated;
+            DiscPresetJsonStore.Save(UserPresetPath, _userDocument);
+            _all = Build();
+            return true;
+        }
+    }
+
     /// <summary>只删用户层里的预设；内置预设删不掉，返回是否删除成功。</summary>
     public static bool RemoveUserPreset(OpticalDiscFamily family, string id)
     {

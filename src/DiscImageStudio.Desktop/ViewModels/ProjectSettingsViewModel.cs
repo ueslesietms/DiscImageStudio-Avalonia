@@ -143,6 +143,46 @@ public partial class ProjectSettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void UpdatePreset()
+    {
+        if (SelectedPreset is not { IsUserPreset: true } preset)
+        {
+            PresetMessage = "只有用户预设可以更新。";
+            return;
+        }
+
+        if (!TryParsePositive(InnerRadius, out double inner) || !TryParsePositive(OuterRadius, out double outer)
+            || !long.TryParse(Sectors.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long sectors))
+        {
+            PresetMessage = "半径和扇区数都填对之后再更新。";
+            return;
+        }
+
+        long? usable = UsableSectors.Trim().Length > 0
+            && long.TryParse(UsableSectors.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed)
+                ? parsed
+                : null;
+        double Number(string text) =>
+            double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value)
+                ? value
+                : 0;
+        string name = string.IsNullOrWhiteSpace(NewPresetName) ? preset.DisplayName : NewPresetName.Trim();
+
+        if (!PresetCatalog.UpdateUserPreset(_family, preset.Id, name, inner, outer, sectors, usable,
+                Number(PitchLinear), Number(PitchQuadratic), Number(PitchCubic), preset.InvertMapping))
+        {
+            PresetMessage = "更新失败，预设可能已被删除。";
+            return;
+        }
+
+        Presets = PresetCatalog.For(_family);
+        OnPropertyChanged(nameof(Presets));
+        SelectedPreset = Presets.FirstOrDefault(item => item.Id == preset.Id);
+        PresetMessage = L.F($"已更新「{name}」。");
+        NewPresetName = string.Empty;
+    }
+
+    [RelayCommand]
     private void DeletePreset()
     {
         if (SelectedPreset is not { IsUserPreset: true } preset)

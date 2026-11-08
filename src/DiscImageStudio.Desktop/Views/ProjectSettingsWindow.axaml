@@ -37,9 +37,14 @@
                 </DataTemplate>
               </ComboBox.ItemTemplate>
             </ComboBox>
-            <Button Grid.Column="1" Classes="ghost" Content="删除" Height="{StaticResource ControlHeight}"
-                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
-                    IsEnabled="{Binding CanDeletePreset}" Command="{Binding DeletePresetCommand}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+              <Button Classes="ghost" Content="更新" Height="{StaticResource ControlHeight}"
+                      Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                      IsEnabled="{Binding CanDeletePreset}" Command="{Binding UpdatePresetCommand}" />
+              <Button Classes="ghost" Content="删除" Height="{StaticResource ControlHeight}"
+                      Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                      IsEnabled="{Binding CanDeletePreset}" Command="{Binding DeletePresetCommand}" />
+            </StackPanel>
           </Grid>
           <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
             <TextBox Text="{Binding NewPresetName}" PlaceholderText="把当前参数存成新预设，先起个名字"
