@@ -1,7 +1,11 @@
 using System.IO;
+#if WINDOWS
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+#else
+using DiscImageStudio.ImageIO;
+#endif
 
 namespace DiscImageStudio.Imaging;
 
@@ -12,6 +16,7 @@ public static class GrayscaleDither
 {
     private static readonly double[] LinearSrgbLevels = BuildLinearSrgbLevels();
 
+#if WINDOWS
     public static BitmapSource LoadImage(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -57,6 +62,89 @@ public static class GrayscaleDither
         result.Freeze();
         return result;
     }
+
+    public static void SavePng(BitmapSource output, string path, ReadOnlySpan<byte> levels)
+    {
+        ValidateLevels(levels);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        if (!string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Dithered images must be saved as lossless PNG files (.png).", nameof(path));
+        }
+
+        if (output.Format != PixelFormats.Gray8)
+        {
+            throw new ArgumentException("The output must be a Gray8 bitmap.", nameof(output));
+        }
+
+        byte[] row = new byte[output.PixelWidth];
+        for (int y = 0; y < output.PixelHeight; y++)
+        {
+            output.CopyPixels(new Int32Rect(0, y, output.PixelWidth, 1), row, row.Length, 0);
+            ValidateGrayRow(row, levels);
+        }
+
+        string fullPath = Path.GetFullPath(path);
+        string directory = Path.GetDirectoryName(fullPath)!;
+        Directory.CreateDirectory(directory);
+        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            PngBitmapEncoder encoder = new();
+            encoder.Frames.Add(BitmapFrame.Create(output));
+            using (FileStream stream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                encoder.Save(stream);
+            }
+
+            File.Move(temporaryPath, fullPath, overwrite: true);
+        }
+        finally
+        {
+            File.Delete(temporaryPath);
+        }
+    }
+
+    private static BitmapSource ToBgra32(BitmapSource source) =>
+        source.Format == PixelFormats.Bgra32
+            ? source
+            : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+
+    private static double ValidDpi(double dpi) => double.IsFinite(dpi) && dpi > 0 ? dpi : 96.0;
+#else
+    /// <summary>跨平台入口：读成紧密排列的直通 alpha BGRA 像素。</summary>
+    public static (int Width, int Height, byte[] Pixels) LoadBgra32(string path)
+    {
+        BgraRaster raster = RasterCodec.LoadBgra32(path);
+        return (raster.Width, raster.Height, raster.Pixels);
+    }
+
+    /// <summary>跨平台入口：把 Gray8 缓冲区写成 PNG，只接受调色板里的灰阶。</summary>
+    public static void SaveGrayPng(int width, int height, byte[] gray, string path, ReadOnlySpan<byte> levels)
+    {
+        ValidateLevels(levels);
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(height);
+        if (gray.Length != checked(width * height))
+        {
+            throw new ArgumentException("The gray buffer must contain exactly width × height bytes.", nameof(gray));
+        }
+
+        if (!string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Dithered images must be saved as lossless PNG files (.png).", nameof(path));
+        }
+
+        ValidateGrayRow(gray, levels);
+
+        string fullPath = Path.GetFullPath(path);
+        string directory = Path.GetDirectoryName(fullPath)!;
+        Directory.CreateDirectory(directory);
+        RasterCodec.SavePng(fullPath, width, height, gray, grayscale: true);
+    }
+#endif
 
     /// <summary>
     /// Dithers tightly packed, straight-alpha BGRA pixels using serpentine Floyd–Steinberg diffusion.
@@ -133,62 +221,6 @@ public static class GrayscaleDither
         return output;
     }
 
-    public static void SavePng(BitmapSource output, string path, ReadOnlySpan<byte> levels)
-    {
-        ValidateLevels(levels);
-        ArgumentNullException.ThrowIfNull(output);
-        ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        if (!string.Equals(Path.GetExtension(path), ".png", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new ArgumentException("Dithered images must be saved as lossless PNG files (.png).", nameof(path));
-        }
-
-        if (output.Format != PixelFormats.Gray8)
-        {
-            throw new ArgumentException("The output must be a Gray8 bitmap.", nameof(output));
-        }
-
-        byte[] row = new byte[output.PixelWidth];
-        for (int y = 0; y < output.PixelHeight; y++)
-        {
-            output.CopyPixels(new Int32Rect(0, y, output.PixelWidth, 1), row, row.Length, 0);
-            foreach (byte gray in row)
-            {
-                if (!levels.Contains(gray))
-                {
-                    throw new ArgumentException("The output may contain only the selected gray levels.", nameof(output));
-                }
-            }
-        }
-
-        string fullPath = Path.GetFullPath(path);
-        string directory = Path.GetDirectoryName(fullPath)!;
-        Directory.CreateDirectory(directory);
-        string temporaryPath = Path.Combine(directory, $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
-        try
-        {
-            PngBitmapEncoder encoder = new();
-            encoder.Frames.Add(BitmapFrame.Create(output));
-            using (FileStream stream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            {
-                encoder.Save(stream);
-            }
-
-            File.Move(temporaryPath, fullPath, overwrite: true);
-        }
-        finally
-        {
-            File.Delete(temporaryPath);
-        }
-    }
-
-    private static BitmapSource ToBgra32(BitmapSource source) =>
-        source.Format == PixelFormats.Bgra32
-            ? source
-            : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
-
-    private static double ValidDpi(double dpi) => double.IsFinite(dpi) && dpi > 0 ? dpi : 96.0;
-
     private static void ValidateLevels(ReadOnlySpan<byte> levels)
     {
         if (levels.Length < 2)
@@ -197,6 +229,17 @@ public static class GrayscaleDither
         {
             if (levels[index] <= levels[index - 1])
                 throw new ArgumentException("Gray levels must be distinct and sorted from dark to light.", nameof(levels));
+        }
+    }
+
+    private static void ValidateGrayRow(ReadOnlySpan<byte> gray, ReadOnlySpan<byte> levels)
+    {
+        foreach (byte value in gray)
+        {
+            if (!levels.Contains(value))
+            {
+                throw new ArgumentException("The output may contain only the selected gray levels.", "output");
+            }
         }
     }
 
