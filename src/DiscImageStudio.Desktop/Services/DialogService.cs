@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using DiscImageStudio.Desktop.ViewModels;
+using DiscImageStudio.Desktop.Views;
 
 namespace DiscImageStudio.Desktop.Services;
 
@@ -13,6 +15,8 @@ public interface IDialogService
     Task<IReadOnlyList<string>> PickOpenFilesAsync(string title, string filter);
 
     Task<string?> PickFolderAsync(string title);
+
+    Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel);
 }
 
 /// <summary>Avalonia StorageProvider 实现，把 WPF 的过滤器字符串翻译成文件类型。</summary>
@@ -65,6 +69,17 @@ public sealed class AvaloniaDialogService : IDialogService
             AllowMultiple = false,
         });
         return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+    }
+
+    public async Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel)
+    {
+        if (_owner is not Window owner)
+        {
+            return;
+        }
+
+        ProjectSettingsWindow dialog = new(viewModel);
+        await dialog.ShowDialog(owner);
     }
 
     public static FilePickerFileType[] ParseFilter(string filter)

@@ -357,9 +357,19 @@ public partial class ExportPageViewModel : ObservableObject
     private void GoDesign() => _shell.NavigateTo(Workspace.Design);
 
     [RelayCommand]
-    private void OpenProjectSettings()
+    private async Task OpenProjectSettingsAsync()
     {
-        // 工程设置对话框随 ProjectDialogWindow 一起迁。
+        if (_shell.Dialogs is not { } dialogs || _shell.CurrentProject is not { } project)
+        {
+            return;
+        }
+
+        ProjectSettingsViewModel settings = new(_shell.State, project.Family, project.Name, () =>
+        {
+            _shell.Design.RefreshGeometry();
+            Refresh();
+        });
+        await dialogs.ShowProjectSettingsAsync(settings);
     }
 
     internal void Refresh()
