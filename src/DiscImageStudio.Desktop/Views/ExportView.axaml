@@ -66,7 +66,7 @@
                   Background="{DynamicResource Surface2Brush}"
                   Command="{Binding AddMusicTracksCommand}" />
           <TextBlock Classes="micro" TextWrapping="Wrap"
-                     Text="音频会转成 44.1kHz/16bit 的 CD 音轨放在前面，盘面图案编码进最后一轨。音乐能正常播放，图案在那之后的盘面区域。" />
+                     Text="音频转成 44.1kHz/16bit 后和图案编码拼成一个音频文件，CUE 只有一条轨。播放器当一轨整段放：前面是音乐，后面是图案编码的噪声，图案落在音乐结束之后的盘面。" />
         </StackPanel>
       </controls:SectionCard>
 

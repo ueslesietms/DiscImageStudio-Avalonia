@@ -17,7 +17,10 @@ public sealed record CdMultiTrackRequest(
     CdDiscParameters Parameters,
     ToneProfile Tone,
     bool Interleave = true,
-    bool WriteCue = true);
+    bool WriteCue = true,
+    /// <summary>false（默认）：音乐和图案拼成同一轨，CUE 只有一条 TRACK 01，任何播放器都当一轨放。
+    /// true：每条音乐和图案各占一轨（依赖刻录工具严格按 CUE 处理，否则轨间 pre-gap 会让图案偏移）。</summary>
+    bool SplitTracks = false);
 
 public sealed record CdMultiTrackSummary(
     string OutputWave,
@@ -159,8 +162,10 @@ public static class CdMultiTrackGenerator
             string? cuePath = null;
             if (request.WriteCue)
             {
-                cuePath = WriteCue(outputPath, request.MusicTracks, trackStartSectors,
-                    patternStartSector, patternPcmPath is not null);
+                cuePath = request.SplitTracks
+                    ? WriteSplitCue(outputPath, request.MusicTracks, trackStartSectors,
+                        patternStartSector, patternPcmPath is not null)
+                    : WriteSingleTrackCue(outputPath);
             }
 
             return new CdMultiTrackSummary(outputPath, trackStartSectors, trackSectors,
@@ -241,7 +246,19 @@ public static class CdMultiTrackGenerator
         stream.SetLength(expected);
     }
 
-    private static string WriteCue(
+    /// <summary>拼接成一条轨：播放器看到的是一个 80 分钟的音轨，音乐在前、图案编码在后。</summary>
+    private static string WriteSingleTrackCue(string wavePath)
+    {
+        string cuePath = Path.ChangeExtension(wavePath, ".cue");
+        StringBuilder builder = new();
+        builder.Append("FILE \"").Append(Path.GetFileName(wavePath)).AppendLine("\" WAVE");
+        AppendCueTrack(builder, 1, null, 0);
+        File.WriteAllText(cuePath, builder.ToString(),
+            new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        return cuePath;
+    }
+
+    private static string WriteSplitCue(
         string wavePath,
         IReadOnlyList<CdMusicTrack> musicTracks,
         IReadOnlyList<long> trackStartSectors,

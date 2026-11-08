@@ -288,7 +288,7 @@ public partial class ExportPageViewModel : ObservableObject
 
     public string MusicSummary => MusicTracks.Count == 0
         ? L.T("没有音乐轨：整张盘只有图案。")
-        : L.F($"共 {MusicTracks.Count} 条音乐轨，最后一轨留给图案。");
+        : L.F($"共 {MusicTracks.Count} 首，和图案拼成一条音轨。");
 
     public bool CanGenerate => _shell.IsProjectOpen && HasLayers;
 
