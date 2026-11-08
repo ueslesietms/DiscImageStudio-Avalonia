@@ -82,8 +82,9 @@
 
           <controls:SectionCard Header="标注" Icon="{StaticResource IconCrosshair}">
             <StackPanel Spacing="10">
+              <CheckBox Content="在照片上拖动轮廓控制点" IsChecked="{Binding EditContours}" />
               <TextBlock Classes="micro" TextWrapping="Wrap"
-                         Text="依次标三组点：盘外缘（当 60 mm 基准）、数据区内缘、数据区外缘。每组至少三个点，点得散一点更准。" />
+                         Text="上面的轮廓点可以直接拖到盘缘和孔缘上，拖完再点一次“矫正”。取消勾选则回到简化标注：依次标盘外缘、数据区内缘、数据区外缘各三点以上来量半径。" />
 
               <StackPanel Orientation="Horizontal" Spacing="6">
                 <RadioButton GroupName="edge" Content="盘外缘" IsChecked="{Binding IsDiscEdge, Mode=TwoWay}" />

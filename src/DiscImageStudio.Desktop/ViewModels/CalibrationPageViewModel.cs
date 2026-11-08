@@ -94,6 +94,25 @@ public partial class CalibrationPageViewModel : ObservableObject
 
     public CalibrationPoint[] HoleContour { get; private set; } = [];
 
+    /// <summary>画布上的交互模式：true 拖轮廓控制点，false 点半径标注。</summary>
+    [ObservableProperty]
+    private bool _editContours = true;
+
+    /// <summary>轮廓控制点被拖动后通知画布重绘。</summary>
+    public event EventHandler? ContoursChanged;
+
+    public void MoveContourPoint(bool outer, int index, CalibrationPoint point)
+    {
+        CalibrationPoint[] target = outer ? OuterContour : HoleContour;
+        if (index < 0 || index >= target.Length)
+        {
+            return;
+        }
+
+        target[index] = point;
+        ContoursChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public CalibrationPhotoTransform? PhotoTransform { get; private set; }
 
     [ObservableProperty]

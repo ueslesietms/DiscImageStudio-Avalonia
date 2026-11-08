@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using DiscImageStudio.Core.Calibration;
 using DiscImageStudio.Desktop.ViewModels;
 
 namespace DiscImageStudio.Desktop.Controls;
@@ -33,6 +34,7 @@ public class CalibrationPhotoCanvas : Control
                 old.InnerPoints.CollectionChanged -= OnPointsChanged;
                 old.OuterPoints.CollectionChanged -= OnPointsChanged;
                 old.PropertyChanged -= OnDesignPropertyChanged;
+                old.ContoursChanged -= OnContoursChanged;
             }
 
             if (Design is { } design)
@@ -41,11 +43,14 @@ public class CalibrationPhotoCanvas : Control
                 design.InnerPoints.CollectionChanged += OnPointsChanged;
                 design.OuterPoints.CollectionChanged += OnPointsChanged;
                 design.PropertyChanged += OnDesignPropertyChanged;
+                design.ContoursChanged += OnContoursChanged;
             }
 
             InvalidateVisual();
         }
     }
+
+    private void OnContoursChanged(object? sender, EventArgs args) => InvalidateVisual();
 
     private void OnPointsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs args)
         => InvalidateVisual();
@@ -83,6 +88,8 @@ public class CalibrationPhotoCanvas : Control
             photo.PixelSize.Width * layout.Scale, photo.PixelSize.Height * layout.Scale);
         context.DrawImage(photo, target);
 
+        DrawContour(context, Design.OuterContour, OuterBrush, layout);
+        DrawContour(context, Design.HoleContour, InnerBrush, layout);
         DrawEdge(context, Design.DiscPoints, DiscBrush, layout);
         DrawEdge(context, Design.InnerPoints, InnerBrush, layout);
         DrawEdge(context, Design.OuterPoints, OuterBrush, layout);
@@ -125,6 +132,34 @@ public class CalibrationPhotoCanvas : Control
         }
     }
 
+    /// <summary>轮廓：闭合折线 + 控制点。</summary>
+    private static void DrawContour(DrawingContext context, IReadOnlyList<CalibrationPoint> points,
+        IBrush brush, (double Scale, Point Offset) layout)
+    {
+        if (points.Count == 0)
+        {
+            return;
+        }
+
+        Pen pen = new(brush, 1.2);
+        for (int index = 0; index < points.Count; index++)
+        {
+            CalibrationPoint a = points[index];
+            CalibrationPoint b = points[(index + 1) % points.Count];
+            Point pa = new(layout.Offset.X + a.X * layout.Scale, layout.Offset.Y + a.Y * layout.Scale);
+            Point pb = new(layout.Offset.X + b.X * layout.Scale, layout.Offset.Y + b.Y * layout.Scale);
+            context.DrawLine(pen, pa, pb);
+        }
+
+        foreach (CalibrationPoint point in points)
+        {
+            Point screen = new(layout.Offset.X + point.X * layout.Scale, layout.Offset.Y + point.Y * layout.Scale);
+            context.DrawEllipse(brush, new Pen(Brushes.Black, 1), screen, 4.5, 4.5);
+        }
+    }
+
+    private (bool Outer, int Index)? _dragTarget;
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -142,8 +177,75 @@ public class CalibrationPhotoCanvas : Control
         Point imagePoint = new(
             (screen.X - layout.Offset.X) / layout.Scale,
             (screen.Y - layout.Offset.Y) / layout.Scale);
+
+        if (Design.EditContours)
+        {
+            _dragTarget = HitContourPoint(imagePoint);
+            if (_dragTarget is not null)
+            {
+                e.Pointer.Capture(this);
+                e.Handled = true;
+                return;
+            }
+        }
+
         Design.AddPoint(imagePoint);
         InvalidateVisual();
         e.Handled = true;
+    }
+
+    protected override void OnPointerMoved(PointerEventArgs e)
+    {
+        base.OnPointerMoved(e);
+        if (_dragTarget is not { } target || Design is null || Layout() is not { } layout)
+        {
+            return;
+        }
+
+        Point screen = e.GetPosition(this);
+        Design.MoveContourPoint(target.Outer, target.Index,
+            new CalibrationPoint((screen.X - layout.Offset.X) / layout.Scale,
+                (screen.Y - layout.Offset.Y) / layout.Scale));
+        InvalidateVisual();
+    }
+
+    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    {
+        base.OnPointerReleased(e);
+        if (_dragTarget is not null)
+        {
+            _dragTarget = null;
+            e.Pointer.Capture(null);
+        }
+    }
+
+    private (bool Outer, int Index)? HitContourPoint(Point imagePoint)
+    {
+        if (Design is null)
+        {
+            return null;
+        }
+
+        double tolerance = 14;
+        (bool Outer, int Index)? best = null;
+        double bestDistance = tolerance * tolerance;
+        Check(Design.OuterContour, true);
+        Check(Design.HoleContour, false);
+        return best;
+
+        void Check(CalibrationPoint[] points, bool outer)
+        {
+            for (int index = 0; index < points.Length; index++)
+            {
+                double dx = points[index].X - imagePoint.X;
+                double dy = points[index].Y - imagePoint.Y;
+                double distance = dx * dx + dy * dy;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = (outer, index);
+                }
+            }
+        }
     }
 }
