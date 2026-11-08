@@ -21,13 +21,14 @@ public partial class ShellViewModel : ObservableObject
         _home = new HomePageViewModel(this);
         Design = new DesignPageViewModel(this);
         Export = new ExportPageViewModel(this);
+        Preview = new PreviewPageViewModel(this);
 
         _pages = new Dictionary<Workspace, object>
         {
             [Workspace.Design] = Design,
             [Workspace.Export] = Export,
             [Workspace.Burn] = new WorkspacePageViewModel(Workspace.Burn, "刻录", "把镜像写入可报废的空白盘片。", "IconFlame"),
-            [Workspace.Preview] = new WorkspacePageViewModel(Workspace.Preview, "预览", "核对盘面投影与实测几何。", "IconEye"),
+            [Workspace.Preview] = Preview,
             [Workspace.Calibration] = new WorkspacePageViewModel(Workspace.Calibration, "标定", "录入照片与轨迹，校准物理模型。", "IconCrosshair"),
         };
 
@@ -48,6 +49,8 @@ public partial class ShellViewModel : ObservableObject
     public DesignPageViewModel Design { get; }
 
     public ExportPageViewModel Export { get; }
+
+    public PreviewPageViewModel Preview { get; }
 
     /// <summary>共享参数状态：所有工作区绑定同一份。</summary>
     public DiscParametersState State { get; } = new();
@@ -89,6 +92,10 @@ public partial class ShellViewModel : ObservableObject
 
         CurrentWorkspace = workspace;
         CurrentPage = _pages[workspace];
+        if (workspace == Workspace.Preview)
+        {
+            Preview.RefreshCommand.Execute(null);
+        }
         foreach (NavItemViewModel item in NavItems)
         {
             item.IsActive = item.Workspace == workspace;

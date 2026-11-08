@@ -24,6 +24,9 @@
     <DataTemplate DataType="{x:Type vm:DesignPageViewModel}">
       <views:DesignView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:PreviewPageViewModel}">
+      <views:PreviewView />
+    </DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>

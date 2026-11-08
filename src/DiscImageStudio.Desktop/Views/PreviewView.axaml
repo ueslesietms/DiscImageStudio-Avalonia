@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DiscImageStudio.Desktop.Localization"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+             x:Class="DiscImageStudio.Desktop.Views.PreviewView"
+             x:DataType="vm:PreviewPageViewModel">
+  <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,*">
+
+    <controls:PageHeader Title="{loc:Loc Xaml.Preview}" Badge="{Binding FamilyLabel}"
+                         Subtitle="核对盘面投影；尺寸只影响预览精度，不改工程几何。">
+      <controls:PageHeader.Actions>
+        <Button Classes="primary" Content="{loc:Loc Xaml.NextBurn}"
+                Command="{Binding GoNextCommand}" />
+      </controls:PageHeader.Actions>
+    </controls:PageHeader>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+
+      <Border Classes="card" Padding="0" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,*">
+          <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+              <Button Classes="ghost" Content="刷新预览" Height="{StaticResource CompactHeight}"
+                      Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                      Command="{Binding RefreshCommand}" />
+              <TextBlock Grid.Column="1" Classes="micro" Margin="10,0,0,0" VerticalAlignment="Center"
+                         Text="{Binding PreviewSize, StringFormat='预览 {0} px'}" />
+              <TextBlock Grid.Column="3" Classes="micro" VerticalAlignment="Center"
+                         Text="{Binding GeometrySummary}" />
+            </Grid>
+          </Border>
+
+          <Panel Grid.Row="1" Background="{DynamicResource DiscCanvasBackdropBrush}" MinHeight="480">
+            <Image Source="{Binding Preview}" Stretch="Uniform" Margin="16" />
+            <TextBlock Text="设计页还没有图层。" Classes="secondary" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" IsVisible="{Binding !HasLayers}" />
+          </Panel>
+        </Grid>
+      </Border>
+
+      <ScrollViewer Grid.Column="1" Width="280" Margin="16,0,0,0">
+        <StackPanel Spacing="16">
+          <controls:SectionCard Header="导出" Icon="{StaticResource IconImage}">
+            <StackPanel Spacing="10">
+              <Button Classes="ghost" Content="导出预览 PNG" HorizontalAlignment="Stretch"
+                      Height="{StaticResource CompactHeight}"
+                      Background="{DynamicResource Surface2Brush}"
+                      Command="{Binding ExportPngCommand}" />
+              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding StatusMessage}" />
+            </StackPanel>
+          </controls:SectionCard>
+
+          <controls:SectionCard Header="说明" Icon="{StaticResource IconInfo}">
+            <TextBlock Classes="micro" TextWrapping="Wrap"
+                       Text="这里显示的是设计页合成图按当前盘片几何的投影，和导出时写进镜像的像素一致。实测半径与成品读回要等标定页迁完再提供。" />
+          </controls:SectionCard>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

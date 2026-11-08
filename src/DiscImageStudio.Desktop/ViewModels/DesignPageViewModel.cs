@@ -216,14 +216,21 @@ public partial class DesignPageViewModel : ObservableObject
         }
     }
 
-    /// <summary>把盘面合成图渲染成 PNG（导出/刻录的源图）。必须在 UI 线程调用。</summary>
-    public string RenderCompositePng(int size, string path)
+    /// <summary>把盘面合成图渲染成位图（预览直接显示它）。必须在 UI 线程调用，调用方负责释放。</summary>
+    public RenderTargetBitmap RenderCompositeBitmap(int size)
     {
         DiscCompositeControl control = new() { Design = this };
         control.Measure(new Size(size, size));
         control.Arrange(new Rect(0, 0, size, size));
-        using RenderTargetBitmap bitmap = new(new PixelSize(size, size));
+        RenderTargetBitmap bitmap = new(new PixelSize(size, size));
         bitmap.Render(control);
+        return bitmap;
+    }
+
+    /// <summary>把盘面合成图渲染成 PNG（导出/刻录的源图）。必须在 UI 线程调用。</summary>
+    public string RenderCompositePng(int size, string path)
+    {
+        using RenderTargetBitmap bitmap = RenderCompositeBitmap(size);
         string? directory = Path.GetDirectoryName(Path.GetFullPath(path));
         if (!string.IsNullOrEmpty(directory))
         {
