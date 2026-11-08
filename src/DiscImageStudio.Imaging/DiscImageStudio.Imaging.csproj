@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net10.0</TargetFrameworks>
-    <!-- Windows 上额外提供 WPF 目标，保持原桌面程序使用的 BitmapSource 入口不变。 -->
-    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0;net10.0-windows</TargetFrameworks>
+    <!-- 始终双目标：net10.0 给通用调用方，net10.0-windows 保留 WPF 的 BitmapSource 入口。
+         不能按构建机 OS 条件裁剪——非 Windows 上构建 net10.0-windows 的测试项目时，
+         会解析到缺 WPF API 的 net10.0 目标而编译失败。 -->
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
