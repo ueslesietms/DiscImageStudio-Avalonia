@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>DiscImageStudio.Desktop</AssemblyName>
+    <RootNamespace>DiscImageStudio.Desktop</RootNamespace>
+    <Title>Disc Image Studio</Title>
+    <Product>Disc Image Studio</Product>
+    <Description>Create and stream-burn image-mapped CD audio tracks and DVD data discs.</Description>
+    <Company>Disc Image Studio</Company>
+    <Copyright>Copyright © 2026</Copyright>
+    <NeutralLanguage>zh-CN</NeutralLanguage>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.3" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DiscImageStudio.Core\DiscImageStudio.Core.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.ImageIO\DiscImageStudio.ImageIO.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.Imaging\DiscImageStudio.Imaging.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.Cd\DiscImageStudio.Cd.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.Dvd\DiscImageStudio.Dvd.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.BluRay\DiscImageStudio.BluRay.csproj" />
+    <ProjectReference Include="..\DiscImageStudio.Iso\DiscImageStudio.Iso.csproj" />
+  </ItemGroup>
+
+  <!-- 字体与图标沿用 WPF 项目的资源，不复制副本；Avalonia 侧直接以 avares 引用。 -->
+  <ItemGroup>
+    <AvaloniaResource Include="..\DiscImageStudio.App\Assets\Fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" />
+    <AvaloniaResource Include="..\DiscImageStudio.App\Assets\DiscImageStudio-256.png" Link="Assets\DiscImageStudio-256.png" />
+  </ItemGroup>
+
+  <!-- 与 WPF 外壳共享的跨平台源码：本地化目录、共享参数状态、工程读写、参数解析。 -->
+  <ItemGroup>
+    <Compile Include="..\DiscImageStudio.App\Localization\L.cs" Link="Localization\L.cs" />
+    <Compile Include="..\DiscImageStudio.App\ViewModels\DiscParametersState.cs" Link="ViewModels\Shared\DiscParametersState.cs" />
+    <Compile Include="..\DiscImageStudio.App\ViewModels\ProjectSession.cs" Link="ViewModels\Shared\ProjectSession.cs" />
+    <Compile Include="..\DiscImageStudio.App\Services\ParameterParser.cs" Link="Services\Shared\ParameterParser.cs" />
+    <Compile Include="..\DiscImageStudio.App\Services\ParameterNumberText.cs" Link="Services\Shared\ParameterNumberText.cs" />
+    <Compile Include="..\DiscImageStudio.App\Services\DvdPitchDisplay.cs" Link="Services\Shared\DvdPitchDisplay.cs" />
+    <EmbeddedResource Include="..\DiscImageStudio.App\Localization\Catalogs\*.json"
+                      LogicalName="DiscImageStudio.Localization.Catalogs.%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

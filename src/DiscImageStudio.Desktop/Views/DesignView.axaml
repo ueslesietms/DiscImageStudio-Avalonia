@@ -1,0 +1,122 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DiscImageStudio.Desktop.Localization"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+             x:Class="DiscImageStudio.Desktop.Views.DesignView"
+             x:DataType="vm:DesignPageViewModel">
+  <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,*">
+
+    <controls:PageHeader Title="{loc:Loc Xaml.Design}" Badge="{Binding FamilyLabel}"
+                         Subtitle="导入图片、排版图层，调整抖动与伽马。">
+      <controls:PageHeader.Actions>
+        <Button Classes="primary" Content="{loc:Loc Xaml.NextExport}"
+                Command="{Binding GoNextCommand}" />
+      </controls:PageHeader.Actions>
+    </controls:PageHeader>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+
+      <!-- 画布 -->
+      <Border Classes="card" Padding="0" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,*">
+          <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+              <Button Classes="primary" Command="{Binding ImportImagesCommand}" Height="{StaticResource CompactHeight}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Data="{StaticResource IconPlus}" Width="14" Height="14"
+                        Stroke="{StaticResource OnPrimaryBrush}" />
+                  <TextBlock Text="{loc:Loc Xaml.ImportImages}" Foreground="{StaticResource OnPrimaryBrush}" />
+                </StackPanel>
+              </Button>
+              <Button Grid.Column="1" Classes="ghost" Margin="8,0,0,0"
+                      Content="删除图层" Height="{StaticResource CompactHeight}"
+                      Command="{Binding RemoveSelectedCommand}" IsEnabled="{Binding HasSelection}" />
+              <TextBlock Grid.Column="3" Classes="micro" VerticalAlignment="Center"
+                         Text="{Binding ContentRingText}" />
+            </Grid>
+          </Border>
+
+          <controls:DiscDesignCanvas Grid.Row="1" MinHeight="520" />
+        </Grid>
+      </Border>
+
+      <!-- 右栏：图层 + 属性 -->
+      <ScrollViewer Grid.Column="1" Width="300" Margin="16,0,0,0">
+        <StackPanel Spacing="16">
+
+          <controls:SectionCard Header="{loc:Loc Xaml.Layers}" Icon="{StaticResource IconLayers}">
+            <StackPanel>
+              <TextBlock Classes="micro" Text="还没有图层。先导入一张图片。" IsVisible="{Binding !HasLayers}"
+                         Margin="0,0,0,4" />
+              <ItemsControl ItemsSource="{Binding Layers}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:DesignLayerViewModel">
+                    <Button Classes="layerRow" Classes.selected="{Binding IsSelected}"
+                            Command="{Binding SelectCommand}">
+                      <Grid ColumnDefinitions="Auto,Auto,*">
+                        <CheckBox IsChecked="{Binding IsVisible}" VerticalAlignment="Center"
+                                  MinWidth="0" Margin="0,0,4,0" />
+                        <Border Grid.Column="1" Width="32" Height="32" CornerRadius="4"
+                                Background="{DynamicResource Surface3Brush}" ClipToBounds="True">
+                          <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Grid.Column="2" Text="{Binding Name}" Margin="10,0,0,0"
+                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                                   TextWrapping="NoWrap" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </controls:SectionCard>
+
+          <controls:SectionCard Header="盘内容" Icon="{StaticResource IconFolder}">
+            <StackPanel Spacing="10">
+              <controls:PathField Label="随盘文件夹" Text="{Binding DataDirectory, Mode=TwoWay}"
+                                  ButtonLabel="浏览…" Command="{Binding BrowseDataCommand}" />
+              <CheckBox Content="放到外圈" IsChecked="{Binding FilesAtOuterRing}"
+                        IsVisible="{Binding HasDataFiles}" />
+              <TextBlock Classes="micro" TextWrapping="Wrap"
+                         Text="整个文件夹原样写进盘里。CD 不留文件就走音轨模式。" />
+            </StackPanel>
+          </controls:SectionCard>
+
+          <controls:SectionCard Header="{loc:Loc Xaml.Properties}" Icon="{StaticResource IconSliders}"
+                                IsVisible="{Binding HasSelection}">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="micro" Text="{loc:Loc Xaml.LayerName}" />
+                <TextBox Text="{Binding SelectedLayer.Name}" Height="{StaticResource CompactHeight}" />
+              </StackPanel>
+
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="micro" Text="X (mm)" />
+                  <TextBox Text="{Binding SelectedLayer.TranslateXMm}" Height="{StaticResource CompactHeight}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="6">
+                  <TextBlock Classes="micro" Text="Y (mm)" />
+                  <TextBox Text="{Binding SelectedLayer.TranslateYMm}" Height="{StaticResource CompactHeight}" />
+                </StackPanel>
+              </Grid>
+
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="micro" Text="{loc:Loc Xaml.Rotation}" />
+                  <TextBox Text="{Binding SelectedLayer.RotationDeg}" Height="{StaticResource CompactHeight}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="6">
+                  <TextBlock Classes="micro" Text="{loc:Loc Xaml.Scale}" />
+                  <TextBox Text="{Binding SelectedLayer.ScalePercent}" Height="{StaticResource CompactHeight}" />
+                </StackPanel>
+              </Grid>
+            </StackPanel>
+          </controls:SectionCard>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>

@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             x:Class="DiscImageStudio.Desktop.Views.HomeView"
+             x:DataType="vm:HomePageViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="{StaticResource PagePadding}" Spacing="22" MaxWidth="920" HorizontalAlignment="Left">
+
+      <StackPanel Spacing="6">
+        <TextBlock Classes="title" Text="{Binding Title}" />
+        <TextBlock Classes="secondary" FontSize="13" Text="{Binding Subtitle}" />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Classes="ghost" Content="打开工程…" Padding="14,0" Height="{StaticResource ButtonHeight}"
+                Command="{Binding OpenProjectCommand}"
+                Background="{DynamicResource Surface2Brush}" />
+      </StackPanel>
+
+      <TextBlock Text="新建" Classes="micro" Margin="0,6,0,0" />
+
+      <ItemsControl ItemsSource="{Binding Families}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:DiscFamilyCard">
+            <Button Classes="cardButton" Width="252" Height="128" Margin="0,0,12,12" Padding="0"
+                    Command="{Binding Command}" CommandParameter="{Binding}" ToolTip.Tip="{Binding ActionLabel}">
+              <Border Classes="card" Width="252" Height="128" Padding="18">
+                <Grid RowDefinitions="Auto,*,Auto">
+                  <Path Classes="icon" Data="{Binding Icon}" Width="22" Height="22"
+                        HorizontalAlignment="Left" Stroke="{DynamicResource PrimaryBrush}" />
+                  <TextBlock Grid.Row="1" Text="{Binding Name}" FontSize="18" FontWeight="SemiBold"
+                             VerticalAlignment="Center" />
+                  <TextBlock Grid.Row="2" Text="{Binding Detail}" Classes="muted" FontSize="12" />
+                </Grid>
+              </Border>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <Border Classes="card" Padding="22" MinHeight="120">
+        <StackPanel Spacing="6" VerticalAlignment="Center">
+          <TextBlock Text="最近工程" FontSize="14" FontWeight="SemiBold" />
+          <TextBlock Text="还没有打开过工程。新建一个，或者从磁盘打开 .discproj。"
+                     Classes="muted" FontSize="12" />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

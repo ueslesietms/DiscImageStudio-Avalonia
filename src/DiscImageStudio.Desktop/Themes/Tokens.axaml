@@ -1,0 +1,133 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    设计令牌，从 WPF 版 Themes/Tokens.xaml 平移。
+    暗色为基准，亮色在 ThemeDictionaries 的 Light 里覆盖同名键。
+  -->
+
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Dark">
+      <Color x:Key="BackgroundColor">#121212</Color>
+      <Color x:Key="Surface1Color">#18181B</Color>
+      <Color x:Key="Surface2Color">#26262B</Color>
+      <Color x:Key="Surface3Color">#2E2E33</Color>
+      <Color x:Key="DividerColor">#1FFFFFFF</Color>
+      <Color x:Key="TextPrimaryColor">#FAFAFA</Color>
+      <Color x:Key="TextSecondaryColor">#A1A1AA</Color>
+      <Color x:Key="TextMutedColor">#8C8C92</Color>
+      <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+      <SolidColorBrush x:Key="Surface1Brush" Color="{StaticResource Surface1Color}" />
+      <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2Color}" />
+      <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3Color}" />
+      <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+      <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+      <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#1B1B1C" />
+      <SolidColorBrush x:Key="HoverOverlayBrush" Color="#0AFFFFFF" />
+      <SolidColorBrush x:Key="PressedOverlayBrush" Color="#1FFFFFFF" />
+      <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#12FFFFFF" />
+      <SolidColorBrush x:Key="BackdropBrush" Color="#80000000" />
+      <SolidColorBrush x:Key="BadgeSurfaceBrush" Color="#CC121212" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Light">
+      <Color x:Key="BackgroundColor">#F6F6F7</Color>
+      <Color x:Key="Surface1Color">#FFFFFF</Color>
+      <Color x:Key="Surface2Color">#F1F1F3</Color>
+      <Color x:Key="Surface3Color">#E6E6E9</Color>
+      <Color x:Key="DividerColor">#14000000</Color>
+      <Color x:Key="TextPrimaryColor">#18181B</Color>
+      <Color x:Key="TextSecondaryColor">#52525B</Color>
+      <Color x:Key="TextMutedColor">#71717A</Color>
+      <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+      <SolidColorBrush x:Key="Surface1Brush" Color="{StaticResource Surface1Color}" />
+      <SolidColorBrush x:Key="Surface2Brush" Color="{StaticResource Surface2Color}" />
+      <SolidColorBrush x:Key="Surface3Brush" Color="{StaticResource Surface3Color}" />
+      <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+      <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+      <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+      <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+      <SolidColorBrush x:Key="SurfaceHoverBrush" Color="#ECECEE" />
+      <SolidColorBrush x:Key="HoverOverlayBrush" Color="#08000000" />
+      <SolidColorBrush x:Key="PressedOverlayBrush" Color="#14000000" />
+      <SolidColorBrush x:Key="TitleBarHoverBrush" Color="#0F000000" />
+      <SolidColorBrush x:Key="BackdropBrush" Color="#66000000" />
+      <SolidColorBrush x:Key="BadgeSurfaceBrush" Color="#CCFFFFFF" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+
+  <!-- 品牌色与语义色：两套主题共用（底色不同但取值一致）。 -->
+  <Color x:Key="PrimaryColor">#3385FF</Color>
+  <Color x:Key="PrimaryHoverColor">#74C0FF</Color>
+  <Color x:Key="PrimaryPressedColor">#2569CC</Color>
+  <Color x:Key="OnPrimaryColor">#FFFFFFFF</Color>
+  <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+  <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+  <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
+  <SolidColorBrush x:Key="OnPrimaryBrush" Color="{StaticResource OnPrimaryColor}" />
+  <SolidColorBrush x:Key="PrimarySoftBrush" Color="#1F3385FF" />
+
+  <Color x:Key="DangerColor">#F31260</Color>
+  <Color x:Key="DangerHoverColor">#FF4D84</Color>
+  <Color x:Key="DangerPressedColor">#C10A4A</Color>
+  <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+  <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource DangerHoverColor}" />
+  <SolidColorBrush x:Key="DangerPressedBrush" Color="{StaticResource DangerPressedColor}" />
+  <SolidColorBrush x:Key="DangerSoftBrush" Color="#1FF31260" />
+  <SolidColorBrush x:Key="DangerBorderBrush" Color="#4DF31260" />
+
+  <SolidColorBrush x:Key="WarningBrush" Color="#F5A524" />
+  <SolidColorBrush x:Key="WarningSoftBrush" Color="#14F5A524" />
+  <SolidColorBrush x:Key="WarningBorderBrush" Color="#4DF5A524" />
+  <SolidColorBrush x:Key="WarningTextBrush" Color="#E5C783" />
+
+  <SolidColorBrush x:Key="SuccessBrush" Color="#17C964" />
+  <SolidColorBrush x:Key="SuccessSoftBrush" Color="#1F17C964" />
+
+  <SolidColorBrush x:Key="CloseHotBrush" Color="#C42B1C" />
+  <SolidColorBrush x:Key="CloseHotSoftBrush" Color="#E6C42B1C" />
+
+  <SolidColorBrush x:Key="ScrollbarThumbBrush" Color="#3D3D45" />
+  <SolidColorBrush x:Key="ScrollbarThumbHoverBrush" Color="#52525B" />
+
+  <!-- 盘面画布配色（环形预览 / 设计画布 / 标定照片）。 -->
+  <SolidColorBrush x:Key="DiscCanvasBackdropBrush" Color="#0D0D0F" />
+  <SolidColorBrush x:Key="DiscBodyBrush" Color="#1C1C20" />
+  <SolidColorBrush x:Key="DiscHubBrush" Color="#0D0D0F" />
+  <SolidColorBrush x:Key="DiscRingBrush" Color="#303385FF" />
+  <SolidColorBrush x:Key="DiscGuideBrush" Color="#55A1A1AA" />
+  <SolidColorBrush x:Key="DiscMaskBrush" Color="#88000000" />
+  <SolidColorBrush x:Key="DiscDataRegionBrush" Color="#663385FF" />
+  <SolidColorBrush x:Key="CalibrationPhotoBackdropBrush" Color="#13151A" />
+  <SolidColorBrush x:Key="CalibrationCaptionBrush" Color="#DC13151A" />
+  <SolidColorBrush x:Key="CalibrationEdgeBrush" Color="#74C0FF" />
+  <SolidColorBrush x:Key="CalibrationHubOutlineBrush" Color="#F5A524" />
+  <SolidColorBrush x:Key="CalibrationTraceBrush" Color="#22D3EE" />
+  <SolidColorBrush x:Key="CalibrationPredictionBrush" Color="#FFA94D" />
+  <SolidColorBrush x:Key="CalibrationHandleBrush" Color="#D4D4D8" />
+  <SolidColorBrush x:Key="CalibrationOutlineBrush" Color="#000000" />
+
+  <!-- 形状与度量：控件高度、圆角、页面内边距、侧栏宽度。 -->
+  <CornerRadius x:Key="RadiusField">8</CornerRadius>
+  <CornerRadius x:Key="RadiusCard">12</CornerRadius>
+  <CornerRadius x:Key="RadiusCardHeader">11,11,0,0</CornerRadius>
+  <CornerRadius x:Key="RadiusCardFooter">0,0,11,11</CornerRadius>
+  <CornerRadius x:Key="RadiusChip">5</CornerRadius>
+  <CornerRadius x:Key="RadiusPanel">8</CornerRadius>
+  <CornerRadius x:Key="RadiusFloating">10</CornerRadius>
+
+  <x:Double x:Key="ButtonHeight">34</x:Double>
+  <x:Double x:Key="ControlHeight">32</x:Double>
+  <x:Double x:Key="CompactHeight">28</x:Double>
+  <x:Double x:Key="SidebarWidth">264</x:Double>
+  <x:Double x:Key="SidebarCollapsedWidth">60</x:Double>
+  <x:Double x:Key="TitleBarHeight">32</x:Double>
+  <x:Double x:Key="PageTitleSize">22</x:Double>
+  <Thickness x:Key="PagePadding">32,20,32,32</Thickness>
+
+  <!-- 字体：沿用 WPF 项目内嵌的 HarmonyOS Sans SC。 -->
+  <FontFamily x:Key="AppFontFamily">avares://DiscImageStudio.Desktop/Assets/Fonts/#HarmonyOS Sans SC, Microsoft YaHei UI, Noto Sans CJK SC, sans-serif</FontFamily>
+  <FontFamily x:Key="MonoFontFamily">avares://DiscImageStudio.Desktop/Assets/Fonts/#HarmonyOS Sans SC, Cascadia Mono, Consolas, monospace</FontFamily>
+
+</ResourceDictionary>

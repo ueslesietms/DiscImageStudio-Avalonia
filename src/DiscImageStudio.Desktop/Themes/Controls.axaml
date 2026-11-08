@@ -1,0 +1,150 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+        xmlns:conv="using:Avalonia.Data.Converters">
+
+  <!-- 全局文字与基础控件样式，从 WPF 版 Themes/Controls.xaml 收编常用几档。 -->
+
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+
+  <Style Selector="TextBlock.title">
+    <Setter Property="FontSize" Value="22" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="TextBlock.secondary">
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+  </Style>
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+  </Style>
+  <Style Selector="TextBlock.micro">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+  </Style>
+  <Style Selector="TextBlock.badge">
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="TextWrapping" Value="NoWrap" />
+  </Style>
+
+  <!-- 图标：Path 统一用描边而不是填充。 -->
+  <Style Selector="Path.icon">
+    <Setter Property="Stroke" Value="{DynamicResource TextSecondaryBrush}" />
+    <Setter Property="StrokeThickness" Value="1.7" />
+    <Setter Property="StrokeLineCap" Value="Round" />
+    <Setter Property="StrokeJoin" Value="Round" />
+    <Setter Property="Stretch" Value="Uniform" />
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+  </Style>
+
+  <!-- 主要动作按钮 -->
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+    <Setter Property="Foreground" Value="{StaticResource OnPrimaryBrush}" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusField}" />
+    <Setter Property="Height" Value="{StaticResource ButtonHeight}" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PrimaryHoverBrush}" />
+  </Style>
+  <Style Selector="Button.primary:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PrimaryPressedBrush}" />
+  </Style>
+
+  <!-- 幽灵按钮：侧栏、页眉里那些只有在悬停时才露面的动作 -->
+  <Style Selector="Button.ghost">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusField}" />
+    <Setter Property="Height" Value="{StaticResource ButtonHeight}" />
+    <Setter Property="Padding" Value="10,0" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource HoverOverlayBrush}" />
+  </Style>
+  <Style Selector="Button.ghost:pressed /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource PressedOverlayBrush}" />
+  </Style>
+
+  <!-- 图层列表行 -->
+  <Style Selector="Button.layerRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+    <Setter Property="Padding" Value="8,6" />
+    <Setter Property="Height" Value="46" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="Button.layerRow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+  </Style>
+  <Style Selector="Button.layerRow.selected /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource PrimarySoftBrush}" />
+  </Style>
+
+  <!-- 卡片：图标 + 标题 + 内容槽 -->
+  <Style Selector="controls|SectionCard">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Border Classes="card">
+          <StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+              <Path Classes="icon" Width="15" Height="15" VerticalAlignment="Center"
+                    Data="{TemplateBinding Icon}"
+                    IsVisible="{TemplateBinding Icon, Converter={x:Static conv:ObjectConverters.IsNotNull}}" />
+              <TextBlock Text="{TemplateBinding Header}" FontSize="14" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Margin="8,0,0,0" />
+            </StackPanel>
+            <ContentPresenter Content="{TemplateBinding Content}" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </Style>
+
+  <!-- 卡片 -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{DynamicResource Surface1Brush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{StaticResource RadiusCard}" />
+    <Setter Property="Padding" Value="18" />
+  </Style>
+
+  <!-- 细滚动条 -->
+  <Style Selector="ScrollBar:vertical">
+    <Setter Property="Width" Value="10" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ScrollBar:vertical /template/ Thumb">
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Background" Value="{DynamicResource ScrollbarThumbBrush}" />
+  </Style>
+  <Style Selector="ScrollBar:horizontal">
+    <Setter Property="Height" Value="10" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="ScrollBar:horizontal /template/ Thumb">
+    <Setter Property="MinWidth" Value="24" />
+    <Setter Property="CornerRadius" Value="5" />
+    <Setter Property="Background" Value="{DynamicResource ScrollbarThumbBrush}" />
+  </Style>
+
+</Styles>

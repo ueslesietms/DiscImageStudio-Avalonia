@@ -1,0 +1,84 @@
+using Avalonia.Controls;
+using Avalonia.Platform.Storage;
+
+namespace DiscImageStudio.Desktop.Services;
+
+public interface IDialogService
+{
+    /// <summary>保存文件选择；filter 用 WPF 风格的 "显示名|*.ext|显示名|*.*"。</summary>
+    Task<string?> PickSaveFileAsync(string title, string suggestedName, string defaultExtension, string filter);
+
+    Task<string?> PickOpenFileAsync(string title, string filter);
+
+    Task<IReadOnlyList<string>> PickOpenFilesAsync(string title, string filter);
+
+    Task<string?> PickFolderAsync(string title);
+}
+
+/// <summary>Avalonia StorageProvider 实现，把 WPF 的过滤器字符串翻译成文件类型。</summary>
+public sealed class AvaloniaDialogService : IDialogService
+{
+    private readonly TopLevel _owner;
+
+    public AvaloniaDialogService(TopLevel owner) => _owner = owner;
+
+    public async Task<string?> PickSaveFileAsync(string title, string suggestedName, string defaultExtension, string filter)
+    {
+        IStorageFile? file = await _owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = defaultExtension.TrimStart('.'),
+            FileTypeChoices = ParseFilter(filter),
+            ShowOverwritePrompt = true,
+        });
+        return file?.TryGetLocalPath();
+    }
+
+    public async Task<string?> PickOpenFileAsync(string title, string filter)
+    {
+        IReadOnlyList<IStorageFile> files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = ParseFilter(filter),
+        });
+        return files.Count > 0 ? files[0].TryGetLocalPath() : null;
+    }
+
+    public async Task<IReadOnlyList<string>> PickOpenFilesAsync(string title, string filter)
+    {
+        IReadOnlyList<IStorageFile> files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = true,
+            FileTypeFilter = ParseFilter(filter),
+        });
+        return files.Select(file => file.TryGetLocalPath()).OfType<string>().ToArray();
+    }
+
+    public async Task<string?> PickFolderAsync(string title)
+    {
+        IReadOnlyList<IStorageFolder> folders = await _owner.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+        });
+        return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+    }
+
+    public static FilePickerFileType[] ParseFilter(string filter)
+    {
+        string[] parts = filter.Split('|');
+        List<FilePickerFileType> result = [];
+        for (int index = 0; index + 1 < parts.Length; index += 2)
+        {
+            result.Add(new FilePickerFileType(parts[index])
+            {
+                Patterns = parts[index + 1].Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            });
+        }
+
+        return [.. result];
+    }
+}

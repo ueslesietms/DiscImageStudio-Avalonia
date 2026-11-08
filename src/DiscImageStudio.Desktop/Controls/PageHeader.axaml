@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DiscImageStudio.Desktop.Controls.PageHeader">
+  <Grid Margin="0,0,0,20" RowDefinitions="Auto,Auto">
+    <Grid ColumnDefinitions="*,Auto">
+      <StackPanel VerticalAlignment="Bottom">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock x:Name="TitleText" Classes="title" />
+          <Border x:Name="BadgeChip" Margin="10,0,0,4" Padding="6,2" CornerRadius="6"
+                  Background="{DynamicResource Surface3Brush}" VerticalAlignment="Bottom"
+                  IsVisible="False">
+            <TextBlock x:Name="BadgeText" Classes="badge" />
+          </Border>
+        </StackPanel>
+        <TextBlock x:Name="SubtitleText" Classes="secondary" FontSize="13" Margin="0,6,0,0"
+                   IsVisible="False" />
+      </StackPanel>
+      <ContentPresenter x:Name="ActionHost" Grid.Column="1" VerticalAlignment="Bottom"
+                        Margin="16,0,0,0" />
+    </Grid>
+  </Grid>
+</UserControl>

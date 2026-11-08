@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="DiscImageStudio.Desktop.Controls.PathField">
+  <StackPanel>
+    <TextBlock x:Name="LabelText" Classes="micro" Margin="0,0,0,6" IsVisible="False" />
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBox x:Name="PathTextBox" Height="{StaticResource ControlHeight}" />
+      <Button x:Name="BrowseButton" Grid.Column="1" Classes="ghost" Margin="8,0,0,0"
+              Height="{StaticResource ControlHeight}" Padding="12,0"
+              Background="{DynamicResource Surface2Brush}" />
+    </Grid>
+    <TextBlock x:Name="HintTextBlock" Classes="micro" Margin="0,6,0,0" IsVisible="False" />
+  </StackPanel>
+</UserControl>

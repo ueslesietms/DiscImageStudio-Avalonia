@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DiscImageStudio.Desktop.Localization"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+             xmlns:conv="using:Avalonia.Data.Converters"
+             xmlns:svc="using:DiscImageStudio.Desktop.Services"
+             x:Class="DiscImageStudio.Desktop.Views.ExportView"
+             x:DataType="vm:ExportPageViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="{StaticResource PagePadding}" Spacing="20" MaxWidth="920" HorizontalAlignment="Stretch">
+
+      <controls:PageHeader Title="{loc:Loc Xaml.Export}" Badge="{Binding FamilyLabel}"
+                           Subtitle="{loc:Loc Xaml.ExportTheDesignCompositeAsABurnableImageAdjust}">
+        <controls:PageHeader.Actions>
+          <Button Classes="primary" Content="{loc:Loc Xaml.NextBurn}"
+                  Command="{Binding GoNextCommand}" />
+        </controls:PageHeader.Actions>
+      </controls:PageHeader>
+
+      <controls:SectionCard Header="{loc:Loc Xaml.SourceImage}" Icon="{StaticResource IconImage}">
+        <StackPanel>
+          <controls:SourceChip Text="{Binding SourceSummary}">
+            <controls:SourceChip.Actions>
+              <Button Classes="ghost" Content="{loc:Loc Xaml.ProjectSettings2}"
+                      Padding="10,0" Command="{Binding OpenProjectSettingsCommand}" />
+            </controls:SourceChip.Actions>
+          </controls:SourceChip>
+
+          <controls:VisibilityGate IsOpen="{Binding HasLayers}" Inverted="True">
+            <Button Classes="ghost" Content="{loc:Loc Xaml.ImportImagesInDesign}" Margin="0,12,0,0"
+                    HorizontalAlignment="Left" Command="{Binding GoDesignCommand}" />
+          </controls:VisibilityGate>
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="音乐轨" Icon="{StaticResource IconDisc}" IsVisible="{Binding IsMusicMode}">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="micro" Text="{Binding MusicSummary}" />
+          <ItemsControl ItemsSource="{Binding MusicTracks}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:MusicTrackViewModel">
+                <Border Background="{DynamicResource Surface2Brush}" CornerRadius="{StaticResource RadiusPanel}"
+                        Padding="10,6" Margin="0,0,0,6">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" FontSize="13" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding FilePath}" Classes="micro" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Classes="ghost" Content="移除" Height="26" Padding="8,0"
+                            Command="{Binding RemoveCommand}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button Classes="ghost" Content="添加音乐…" HorizontalAlignment="Left"
+                  Height="{StaticResource CompactHeight}" Padding="12,0"
+                  Background="{DynamicResource Surface2Brush}"
+                  Command="{Binding AddMusicTracksCommand}" />
+          <TextBlock Classes="micro" TextWrapping="Wrap"
+                     Text="音频会转成 44.1kHz/16bit 的 CD 音轨放在前面，盘面图案编码进最后一轨。音乐能正常播放，图案在那之后的盘面区域。" />
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="盘片" Icon="{StaticResource IconDisc}">
+        <StackPanel Spacing="8">
+          <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}"
+                    HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="svc:DiscPresetItem">
+                <TextBlock Text="{Binding DisplayName}" FontSize="13" TextWrapping="NoWrap" />
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding SelectedPreset.Description}" />
+
+        </StackPanel>
+      </controls:SectionCard>
+
+      <controls:SectionCard Header="{loc:Loc Xaml.OutputFile}" Icon="{StaticResource IconFolder}">
+        <StackPanel>
+
+          <controls:VisibilityGate IsOpen="{Binding IsCd}">
+            <StackPanel>
+              <controls:PathField Label="{Binding State.CdOutputLabel}"
+                                  Text="{Binding State.CdOutputPath}"
+                                  ButtonLabel="{loc:Loc Xaml.Select}"
+                                  Hint="{Binding State.CdOutputHint}"
+                                  Command="{Binding BrowseOutputCommand}" />
+
+              <controls:VisibilityGate IsOpen="{Binding State.HasCdFiles}">
+                <StackPanel Margin="0,14,0,0">
+                  <TextBlock Classes="micro" Margin="0,0,0,6" Text="{loc:Loc Xaml.VolumeLabel}" />
+                  <TextBox Text="{Binding State.CdVolumeLabel}" MaxLength="32"
+                           Height="{StaticResource ControlHeight}" />
+                </StackPanel>
+              </controls:VisibilityGate>
+
+              <controls:VisibilityGate IsOpen="{Binding State.IsCdAudioMode}">
+                <StackPanel Margin="0,14,0,0">
+                  <TextBlock Classes="micro" Margin="0,0,0,2" Text="{loc:Loc Xaml.CDDAEncoding}" />
+                  <CheckBox Content="{loc:Loc Xaml.ApplyCDDADelayInterleavingWhenGeneratingAudioTracks}"
+                            IsChecked="{Binding State.CdInterleave}" />
+                  <controls:VisibilityGate IsOpen="{Binding State.IsCdWaveOutput}" Margin="0,10,0,0">
+                    <CheckBox Content="{loc:Loc Xaml.AlsoExportACUEFile}" IsChecked="{Binding State.CdWriteCue}" />
+                  </controls:VisibilityGate>
+                </StackPanel>
+              </controls:VisibilityGate>
+            </StackPanel>
+          </controls:VisibilityGate>
+
+          <controls:VisibilityGate IsOpen="{Binding IsDvd}">
+            <StackPanel>
+              <controls:PathField Label="{loc:Loc Xaml.OutputISO}"
+                                  Text="{Binding State.DvdOutputPath}"
+                                  ButtonLabel="{loc:Loc Xaml.Select}"
+                                  Command="{Binding BrowseOutputCommand}" />
+              <TextBlock Classes="micro" Margin="0,14,0,6" Text="{loc:Loc Xaml.VolumeLabel}" />
+              <TextBox Text="{Binding State.DvdVolumeLabel}" MaxLength="32"
+                       Height="{StaticResource ControlHeight}" />
+              <CheckBox Content="{loc:Loc DvdReadCompatibility.Label}" Margin="0,14,0,0"
+                        ToolTip.Tip="{loc:Loc DvdReadCompatibility.Hint}"
+                        IsChecked="{Binding State.DvdReadCompatibility}" />
+            </StackPanel>
+          </controls:VisibilityGate>
+
+          <controls:VisibilityGate IsOpen="{Binding IsBluRay}">
+            <StackPanel>
+              <controls:PathField Label="{loc:Loc Xaml.OutputISO}"
+                                  Text="{Binding State.BdOutputPath}"
+                                  ButtonLabel="{loc:Loc Xaml.Select}"
+                                  Command="{Binding BrowseOutputCommand}" />
+              <TextBlock Classes="micro" Margin="0,14,0,6" Text="{loc:Loc Xaml.VolumeLabel}" />
+              <TextBox Text="{Binding State.BdVolumeLabel}" MaxLength="32"
+                       Height="{StaticResource ControlHeight}" />
+            </StackPanel>
+          </controls:VisibilityGate>
+
+          <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,16,0,0">
+            <Button Classes="primary" Content="{Binding GenerateButtonText}"
+                    Command="{Binding GenerateCommand}" IsEnabled="{Binding CanGenerate}" />
+            <TextBlock Classes="micro" VerticalAlignment="Center"
+                       Text="{loc:Loc Xaml.WritingAFileDoesNotModifyTheDisc}" />
+          </StackPanel>
+          <TextBlock Classes="micro" TextWrapping="Wrap" Margin="0,10,0,0"
+                     Text="{Binding StatusMessage}" IsVisible="{Binding StatusMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </controls:SectionCard>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

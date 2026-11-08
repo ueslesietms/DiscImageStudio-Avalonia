@@ -1,0 +1,200 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+        xmlns:views="using:DiscImageStudio.Desktop.Views"
+        x:Class="DiscImageStudio.Desktop.MainWindow"
+        x:DataType="vm:ShellViewModel"
+        Title="Disc Image Studio"
+        Width="1240" Height="780" MinWidth="720" MinHeight="560"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="{StaticResource AppFontFamily}"
+        WindowDecorations="None">
+
+  <Window.DataTemplates>
+    <DataTemplate DataType="{x:Type vm:HomePageViewModel}">
+      <views:HomeView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:WorkspacePageViewModel}">
+      <views:WorkspacePlaceholderView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ExportPageViewModel}">
+      <views:ExportView />
+    </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:DesignPageViewModel}">
+      <views:DesignView />
+    </DataTemplate>
+  </Window.DataTemplates>
+
+  <Window.Styles>
+    <Style Selector="Button.chrome">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Width" Value="46" />
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.chrome:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource TitleBarHoverBrush}" />
+    </Style>
+    <Style Selector="Button.chrome.close:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{StaticResource CloseHotBrush}" />
+    </Style>
+    <Style Selector="Button.chrome.close:pointerover Path">
+      <Setter Property="Stroke" Value="White" />
+    </Style>
+
+    <Style Selector="Button.nav">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusField}" />
+      <Setter Property="Height" Value="36" />
+      <Setter Property="Padding" Value="10,0" />
+      <Setter Property="Margin" Value="0,1" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Button.nav.active">
+      <Setter Property="Background" Value="{StaticResource PrimarySoftBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Button.nav.active Path">
+      <Setter Property="Stroke" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Border.sidebar">
+      <Setter Property="Width" Value="{StaticResource SidebarWidth}" />
+    </Style>
+    <Style Selector="Border.sidebar.collapsed">
+      <Setter Property="Width" Value="{StaticResource SidebarCollapsedWidth}" />
+    </Style>
+  </Window.Styles>
+
+  <Grid>
+
+  <Grid RowDefinitions="32,*">
+
+    <!-- 自绘标题栏 -->
+    <Border Grid.Row="0" Background="{DynamicResource BackgroundBrush}"
+            PointerPressed="TitleBar_PointerPressed">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="12,0,0,0"
+                    VerticalAlignment="Center">
+          <Image Source="avares://DiscImageStudio.Desktop/Assets/DiscImageStudio-256.png"
+                 Width="16" Height="16" />
+          <TextBlock Text="Disc Image Studio" FontSize="12" Classes="secondary"
+                     VerticalAlignment="Center" />
+          <Border IsVisible="{Binding IsProjectOpen}" Background="{DynamicResource DividerBrush}"
+                  Width="1" Height="12" VerticalAlignment="Center" Margin="4,0" />
+          <TextBlock Text="{Binding ProjectTitle}" FontSize="12" IsVisible="{Binding IsProjectOpen}"
+                     VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
+          <Button Classes="chrome" ToolTip.Tip="设置" Click="Settings_Click">
+            <Path Classes="icon" Data="{StaticResource IconSettings}" Width="14" Height="14" />
+          </Button>
+          <Button Classes="chrome" ToolTip.Tip="最小化" Click="Minimize_Click">
+            <Path Classes="icon" Data="{StaticResource IconWinMinimize}" Width="12" Height="12" />
+          </Button>
+          <Button Classes="chrome" ToolTip.Tip="最大化" Click="Maximize_Click">
+            <Path Classes="icon" Data="{StaticResource IconWinMaximize}" Width="11" Height="11" />
+          </Button>
+          <Button Classes="chrome close" ToolTip.Tip="关闭" Click="Close_Click">
+            <Path Classes="icon" Data="{StaticResource IconWinClose}" Width="11" Height="11" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
+
+      <!-- 侧栏：只有打开工程时才出现 -->
+      <Border Grid.Column="0" Classes="sidebar"
+              Classes.collapsed="{Binding IsSidebarCollapsed}"
+              IsVisible="{Binding IsProjectOpen}"
+              Background="{DynamicResource BackgroundBrush}"
+              BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,1,0"
+              ClipToBounds="True">
+        <Grid RowDefinitions="*,Auto" Margin="16,0">
+          <StackPanel Grid.Row="0" VerticalAlignment="Top" Margin="0,12,0,0">
+
+            <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,10">
+              <Button Classes="ghost" Width="32" Height="32" Padding="0"
+                      Command="{Binding BackHomeCommand}" ToolTip.Tip="返回主页">
+                <Path Classes="icon" Data="{StaticResource IconChevronLeft}" Width="16" Height="16" />
+              </Button>
+              <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                          IsVisible="{Binding !IsSidebarCollapsed}">
+                <TextBlock Text="{Binding ProjectTitle}" FontSize="14" FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis" />
+                <Border Background="{DynamicResource Surface3Brush}" Padding="5,1"
+                        CornerRadius="{StaticResource RadiusChip}" HorizontalAlignment="Left"
+                        Margin="0,3,0,0">
+                  <TextBlock Text="{Binding ProjectFamily}" Classes="badge" />
+                </Border>
+              </StackPanel>
+            </Grid>
+
+            <TextBlock Text="做盘" Classes="micro" Margin="10,6,0,4"
+                       IsVisible="{Binding !IsSidebarCollapsed}" />
+
+            <ItemsControl ItemsSource="{Binding NavItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:NavItemViewModel">
+                  <Button Classes="nav" Classes.active="{Binding IsActive}"
+                          Command="{Binding SelectCommand}" ToolTip.Tip="{Binding Label}">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                      <Path Classes="icon" Data="{Binding Icon}" Width="16" Height="16" />
+                      <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                                 IsVisible="{Binding ShowLabel}" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <Button Grid.Row="1" Classes="ghost" Height="36" Margin="0,8,0,12" Padding="0"
+                  HorizontalContentAlignment="Center" Command="{Binding ToggleSidebarCommand}"
+                  ToolTip.Tip="收起侧栏">
+            <Path Classes="icon" Data="{StaticResource IconChevronLeft}" Width="18" Height="18" />
+          </Button>
+        </Grid>
+      </Border>
+
+      <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" Focusable="False" />
+    </Grid>
+  </Grid>
+
+  <!-- 无边框窗口的缩放热区（仅非 Windows/macOS 平台显示）。 -->
+  <Grid x:Name="ResizeGrips">
+    <Border Tag="North" VerticalAlignment="Top" Height="5" Background="Transparent"
+            Cursor="SizeNorthSouth" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="South" VerticalAlignment="Bottom" Height="5" Background="Transparent"
+            Cursor="SizeNorthSouth" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="West" HorizontalAlignment="Left" Width="5" Background="Transparent"
+            Cursor="SizeWestEast" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="East" HorizontalAlignment="Right" Width="5" Background="Transparent"
+            Cursor="SizeWestEast" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="NorthWest" HorizontalAlignment="Left" VerticalAlignment="Top" Width="12" Height="12"
+            Background="Transparent" Cursor="TopLeftCorner" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="NorthEast" HorizontalAlignment="Right" VerticalAlignment="Top" Width="12" Height="12"
+            Background="Transparent" Cursor="TopRightCorner" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="SouthWest" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="12" Height="12"
+            Background="Transparent" Cursor="BottomLeftCorner" PointerPressed="Resize_PointerPressed" />
+    <Border Tag="SouthEast" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="12" Height="12"
+            Background="Transparent" Cursor="BottomRightCorner" PointerPressed="Resize_PointerPressed" />
+  </Grid>
+
+  </Grid>
+</Window>
