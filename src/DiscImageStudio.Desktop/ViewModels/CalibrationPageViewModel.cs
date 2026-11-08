@@ -83,6 +83,25 @@ public partial class CalibrationPageViewModel : ObservableObject
 
     private CalibrationTarget? _target;
 
+    /// <summary>照片原始像素（紧凑 BGRA），矫正时直接用它重采样。</summary>
+    public byte[] PhotoPixels { get; private set; } = [];
+
+    public int PhotoWidth { get; private set; }
+
+    public int PhotoHeight { get; private set; }
+
+    public CalibrationPoint[] OuterContour { get; private set; } = [];
+
+    public CalibrationPoint[] HoleContour { get; private set; } = [];
+
+    public CalibrationPhotoTransform? PhotoTransform { get; private set; }
+
+    [ObservableProperty]
+    private Bitmap? _rectifiedImage;
+
+    [ObservableProperty]
+    private string _rectifyStatus = "导入照片后会自动给出一圈外缘和孔缘的初始轮廓。";
+
     public string TargetSummary => _target is null
         ? "还没有生成标靶。"
         : string.Create(CultureInfo.InvariantCulture,
@@ -170,10 +189,18 @@ public partial class CalibrationPageViewModel : ObservableObject
 
         try
         {
-            Bitmap bitmap = new(path);
+            (byte[] pixels, int width, int height) = await Task.Run(() => CalibrationPhotoService.Load(path));
+            PhotoPixels = pixels;
+            PhotoWidth = width;
+            PhotoHeight = height;
             Bitmap? previous = Photo;
-            Photo = bitmap;
+            Photo = CalibrationPhotoService.ToBitmap(pixels, width, height);
             previous?.Dispose();
+            (OuterContour, HoleContour) = CalibrationPhotoService.SuggestContours(width, height);
+            RectifiedImage?.Dispose();
+            RectifiedImage = null;
+            PhotoTransform = null;
+            RectifyStatus = "轮廓已按照片中心给出；直接点“矫正”看结果，或先按下面的简化标注量半径。";
             DiscPoints.Clear();
             InnerPoints.Clear();
             OuterPoints.Clear();
@@ -509,6 +536,46 @@ public partial class CalibrationPageViewModel : ObservableObject
         catch (Exception exception)
         {
             StatusMessage = exception.Message;
+        }
+    }
+
+    [RelayCommand]
+    private async Task RectifyAsync()
+    {
+        if (PhotoPixels.Length == 0 || OuterContour.Length < 5 || HoleContour.Length < 5)
+        {
+            RectifyStatus = "先导入照片。";
+            return;
+        }
+
+        try
+        {
+            RectifyStatus = L.T("正在拟合透视变换…");
+            byte[] pixels = PhotoPixels;
+            int width = PhotoWidth;
+            int height = PhotoHeight;
+            CalibrationPoint[] outer = OuterContour;
+            CalibrationPoint[] hole = HoleContour;
+            CalibrationPhotoFitResult fit = await Task.Run(() => CalibrationPhotoRectifier.Fit(outer, hole));
+            if (!fit.Succeeded || fit.Transform is null)
+            {
+                RectifyStatus = fit.Message;
+                return;
+            }
+
+            PhotoTransform = fit.Transform;
+            CalibrationPhotoTransform transform = fit.Transform;
+            (byte[] rectified, int size) = await Task.Run(
+                () => CalibrationPhotoService.Rectify(pixels, width, height, transform, StandardDiscRadiusMm));
+            Bitmap? previous = RectifiedImage;
+            RectifiedImage = CalibrationPhotoService.ToBitmap(rectified, size, size);
+            previous?.Dispose();
+            RectifyStatus = string.Create(CultureInfo.InvariantCulture,
+                $"矫正完成：{size}×{size} px，外缘 RMS {fit.OuterRmsPixels:0.##} px、孔缘 {fit.HoleRmsPixels:0.##} px。");
+        }
+        catch (Exception exception)
+        {
+            RectifyStatus = exception.Message;
         }
     }
 

@@ -66,6 +66,20 @@
             </StackPanel>
           </controls:SectionCard>
 
+          <controls:SectionCard Header="照片矫正" Icon="{StaticResource IconImage}">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="micro" TextWrapping="Wrap"
+                         Text="按盘外缘（60 mm）和中心孔（7.5 mm）联合拟合透视，把照片拉回正投影。" />
+              <Button Classes="primary" Content="矫正" HorizontalAlignment="Stretch"
+                      Command="{Binding RectifyCommand}" IsEnabled="{Binding HasPhoto}" />
+              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding RectifyStatus}" />
+              <Border Background="{DynamicResource DiscCanvasBackdropBrush}" CornerRadius="6" Padding="6"
+                      IsVisible="{Binding RectifiedImage, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
+                <Image Source="{Binding RectifiedImage}" Width="248" Height="248" Stretch="Uniform" />
+              </Border>
+            </StackPanel>
+          </controls:SectionCard>
+
           <controls:SectionCard Header="标注" Icon="{StaticResource IconCrosshair}">
             <StackPanel Spacing="10">
               <TextBlock Classes="micro" TextWrapping="Wrap"
