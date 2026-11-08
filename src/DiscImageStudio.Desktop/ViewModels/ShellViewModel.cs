@@ -28,6 +28,7 @@ public partial class ShellViewModel : ObservableObject
         Design = new DesignPageViewModel(this);
         Export = new ExportPageViewModel(this);
         Preview = new PreviewPageViewModel(this);
+        Calibration = new CalibrationPageViewModel(this);
 
         _pages = new Dictionary<Workspace, object>
         {
@@ -35,7 +36,7 @@ public partial class ShellViewModel : ObservableObject
             [Workspace.Export] = Export,
             [Workspace.Burn] = new WorkspacePageViewModel(Workspace.Burn, "刻录", "把镜像写入可报废的空白盘片。", "IconFlame"),
             [Workspace.Preview] = Preview,
-            [Workspace.Calibration] = new WorkspacePageViewModel(Workspace.Calibration, "标定", "录入照片与轨迹，校准物理模型。", "IconCrosshair"),
+            [Workspace.Calibration] = Calibration,
         };
 
         NavItems =
@@ -74,6 +75,8 @@ public partial class ShellViewModel : ObservableObject
     public ExportPageViewModel Export { get; }
 
     public PreviewPageViewModel Preview { get; }
+
+    public CalibrationPageViewModel Calibration { get; }
 
     /// <summary>共享参数状态：所有工作区绑定同一份。</summary>
     public DiscParametersState State { get; } = new();

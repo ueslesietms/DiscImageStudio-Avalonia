@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:DiscImageStudio.Desktop.Localization"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:controls="using:DiscImageStudio.Desktop.Controls"
+             x:Class="DiscImageStudio.Desktop.Views.CalibrationView"
+             x:DataType="vm:CalibrationPageViewModel">
+  <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,*">
+
+    <controls:PageHeader Title="{loc:Loc Xaml.Calibration}" Badge="{Binding FamilyLabel}"
+                         Subtitle="从一张正拍的盘片照片量出数据区内/外半径，写回当前参数。">
+      <controls:PageHeader.Actions>
+        <Button Classes="primary" Content="回到设计" Command="{Binding GoBackCommand}" />
+      </controls:PageHeader.Actions>
+    </controls:PageHeader>
+
+    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+
+      <Border Classes="card" Padding="0" ClipToBounds="True">
+        <Grid RowDefinitions="Auto,*">
+          <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+              <Button Classes="primary" Content="导入照片" Height="{StaticResource CompactHeight}"
+                      Command="{Binding LoadPhotoCommand}" />
+              <Button Grid.Column="1" Classes="ghost" Content="撤销" Margin="8,0,0,0"
+                      Height="{StaticResource CompactHeight}" Padding="12,0"
+                      Background="{DynamicResource Surface2Brush}" Command="{Binding UndoCommand}" />
+              <Button Grid.Column="2" Classes="ghost" Content="清空当前边" Margin="8,0,0,0"
+                      Height="{StaticResource CompactHeight}" Padding="12,0"
+                      Background="{DynamicResource Surface2Brush}" Command="{Binding ClearActiveCommand}" />
+              <TextBlock Grid.Column="4" Classes="micro" VerticalAlignment="Center"
+                         Text="{Binding CountsText}" />
+            </Grid>
+          </Border>
+
+          <Panel Grid.Row="1" Background="#0B0B0D" MinHeight="480">
+            <controls:CalibrationPhotoCanvas Design="{Binding}" />
+            <TextBlock Text="先导入一张盘片照片" Classes="secondary" HorizontalAlignment="Center"
+                       VerticalAlignment="Center" IsVisible="{Binding !HasPhoto}" />
+          </Panel>
+        </Grid>
+      </Border>
+
+      <ScrollViewer Grid.Column="1" Width="300" Margin="16,0,0,0">
+        <StackPanel Spacing="16">
+
+          <controls:SectionCard Header="标注" Icon="{StaticResource IconCrosshair}">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="micro" TextWrapping="Wrap"
+                         Text="依次标三组点：盘外缘（当 60 mm 基准）、数据区内缘、数据区外缘。每组至少三个点，点得散一点更准。" />
+
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <RadioButton GroupName="edge" Content="盘外缘" IsChecked="{Binding IsDiscEdge, Mode=TwoWay}" />
+                <RadioButton GroupName="edge" Content="内缘" IsChecked="{Binding IsInnerEdge, Mode=TwoWay}" />
+                <RadioButton GroupName="edge" Content="外缘" IsChecked="{Binding IsOuterEdge, Mode=TwoWay}" />
+              </StackPanel>
+
+              <TextBlock Classes="micro" Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+
+              <Button Classes="primary" Content="测量" HorizontalAlignment="Stretch"
+                      Command="{Binding MeasureCommand}" IsEnabled="{Binding HasPhoto}" />
+            </StackPanel>
+          </controls:SectionCard>
+
+          <controls:SectionCard Header="结果" Icon="{StaticResource IconImage}" IsVisible="{Binding HasResult}">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding ResultSummary}" />
+              <Button Classes="primary" Content="应用到工程" HorizontalAlignment="Stretch"
+                      Command="{Binding ApplyCommand}" />
+            </StackPanel>
+          </controls:SectionCard>
+
+          <controls:SectionCard Header="说明" Icon="{StaticResource IconInfo}">
+            <TextBlock Classes="micro" TextWrapping="Wrap"
+                       Text="这是简化标定：只量半径，不改轨距多项式。完整流程（靶标刻度、弧长拟合）还在搬，先用这个把内外半径校准下来。" />
+          </controls:SectionCard>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>
