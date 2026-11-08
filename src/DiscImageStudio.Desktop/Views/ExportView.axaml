@@ -82,6 +82,24 @@
           </ComboBox>
           <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding SelectedPreset.Description}" />
 
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding NewPresetName}" PlaceholderText="存成预设时起个名字；更新时留空沿用原名"
+                     Height="{StaticResource CompactHeight}" />
+            <Button Grid.Column="1" Classes="ghost" Content="更新" Height="{StaticResource CompactHeight}"
+                    Padding="10,0" Background="{DynamicResource Surface2Brush}"
+                    IsEnabled="{Binding CanManagePreset}" Command="{Binding UpdatePresetCommand}" />
+            <Button Grid.Column="2" Classes="ghost" Content="删除" Height="{StaticResource CompactHeight}"
+                    Padding="10,0" Background="{DynamicResource Surface2Brush}"
+                    IsEnabled="{Binding CanManagePreset}" Command="{Binding DeletePresetCommand}" />
+          </Grid>
+          <Button Classes="ghost" Content="保存为预设" HorizontalAlignment="Left"
+                  Height="{StaticResource CompactHeight}" Padding="12,0"
+                  Background="{DynamicResource Surface2Brush}"
+                  Command="{Binding SaveAsPresetCommand}" />
+          <TextBlock Classes="micro" TextWrapping="Wrap" Foreground="{DynamicResource SuccessBrush}"
+                     Text="{Binding PresetMessage}"
+                     IsVisible="{Binding PresetMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+
         </StackPanel>
       </controls:SectionCard>
 

@@ -94,6 +94,7 @@ public partial class ExportPageViewModel : ObservableObject
         }
 
         ApplyPreset(value);
+        OnPropertyChanged(nameof(CanManagePreset));
     }
 
     private void ApplyPreset(DiscPresetItem preset)
@@ -135,6 +136,121 @@ public partial class ExportPageViewModel : ObservableObject
         }
 
         _shell.Design.RefreshGeometry();
+    }
+
+    [ObservableProperty]
+    private string _newPresetName = string.Empty;
+
+    [ObservableProperty]
+    private string _presetMessage = string.Empty;
+
+    public bool CanManagePreset => SelectedPreset?.IsUserPreset == true;
+
+    /// <summary>把当前几何存成一条用户预设。</summary>
+    [RelayCommand]
+    private void SaveAsPreset()
+    {
+        if (string.IsNullOrWhiteSpace(NewPresetName))
+        {
+            PresetMessage = "先给预设起个名字。";
+            return;
+        }
+
+        (double inner, double outer, long sectors, long? usable) = CurrentGeometry();
+        if (inner <= 0 || outer <= inner || sectors <= 0)
+        {
+            PresetMessage = "当前几何无效，先改对再保存。";
+            return;
+        }
+
+        (double pitchLinear, double pitchQuadratic, double pitchCubic) = CurrentPitch();
+        PresetCatalog.AddUserPreset(_shell.CurrentProject?.Family ?? OpticalDiscFamily.CompactDisc,
+            NewPresetName.Trim(), inner, outer, sectors, usable,
+            pitchLinear, pitchQuadratic, pitchCubic, IsBluRay && State.BdInvertMapping);
+        RefreshPresets();
+        SelectedPreset = Presets.FirstOrDefault(item => item.DisplayName == NewPresetName.Trim());
+        PresetMessage = L.F($"已保存预设「{NewPresetName.Trim()}」。");
+        NewPresetName = string.Empty;
+    }
+
+    /// <summary>用当前几何覆盖选中的用户预设（名称留空则保持原名）。</summary>
+    [RelayCommand]
+    private void UpdatePreset()
+    {
+        if (SelectedPreset is not { IsUserPreset: true } preset)
+        {
+            PresetMessage = "只有用户预设可以更新。";
+            return;
+        }
+
+        (double inner, double outer, long sectors, long? usable) = CurrentGeometry();
+        if (inner <= 0 || outer <= inner || sectors <= 0)
+        {
+            PresetMessage = "当前几何无效，先改对再更新。";
+            return;
+        }
+
+        string name = string.IsNullOrWhiteSpace(NewPresetName) ? preset.DisplayName : NewPresetName.Trim();
+        (double pitchLinear, double pitchQuadratic, double pitchCubic) = CurrentPitch();
+        PresetCatalog.UpdateUserPreset(_shell.CurrentProject?.Family ?? OpticalDiscFamily.CompactDisc,
+            preset.Id, name, inner, outer, sectors, usable,
+            pitchLinear, pitchQuadratic, pitchCubic, IsBluRay && State.BdInvertMapping);
+        RefreshPresets();
+        SelectedPreset = Presets.FirstOrDefault(item => item.Id == preset.Id);
+        PresetMessage = L.F($"已更新「{name}」。");
+        NewPresetName = string.Empty;
+    }
+
+    [RelayCommand]
+    private void DeletePreset()
+    {
+        if (SelectedPreset is not { IsUserPreset: true } preset)
+        {
+            PresetMessage = "内置预设不能删除。";
+            return;
+        }
+
+        if (PresetCatalog.RemoveUserPreset(_shell.CurrentProject?.Family ?? OpticalDiscFamily.CompactDisc, preset.Id))
+        {
+            RefreshPresets();
+            SelectedPreset = null;
+            PresetMessage = L.F($"已删除「{preset.DisplayName}」。");
+        }
+    }
+
+    private void RefreshPresets()
+    {
+        OnPropertyChanged(nameof(Presets));
+        OnPropertyChanged(nameof(CanManagePreset));
+    }
+
+    private (double Linear, double Quadratic, double Cubic) CurrentPitch()
+    {
+        string linear = IsCd ? State.CdPitchLinear : IsDvd ? State.DvdPitchLinear : State.BdPitchLinear;
+        string quadratic = IsCd ? State.CdPitchQuadratic : IsDvd ? State.DvdPitchQuadratic : State.BdPitchQuadratic;
+        string cubic = IsCd ? State.CdPitchCubic : IsDvd ? State.DvdPitchCubic : State.BdPitchCubic;
+        double Parse(string text) =>
+            double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ? value : 0;
+        return (Parse(linear), Parse(quadratic), Parse(cubic));
+    }
+
+    /// <summary>当前盘型的内/外半径、总扇区、可用扇区。</summary>
+    private (double Inner, double Outer, long Sectors, long? Usable) CurrentGeometry()
+    {
+        string innerText = IsCd ? State.CdInnerRadius : IsDvd ? State.DvdInnerRadius : State.BdInnerRadius;
+        string outerText = IsCd ? State.CdOuterRadius : IsDvd ? State.DvdOuterRadius : State.BdOuterRadius;
+        string sectorsText = IsCd ? State.CdSectors : IsDvd ? State.DvdTotalSectors : State.BdTotalSectors;
+        string usableText = IsCd ? State.CdUsableSectors : IsDvd ? State.DvdUsableSectors : State.BdUsableSectors;
+
+        double Parse(string text) =>
+            double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ? value : 0;
+        long sectors = long.TryParse(sectorsText.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed)
+            ? parsed
+            : 0;
+        long? usable = long.TryParse(usableText.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long u)
+            ? u
+            : null;
+        return (Parse(innerText), Parse(outerText), sectors, usable);
     }
 
     /// <summary>打开工程后按当前几何反查预设；对不上就让下拉留空（自定义）。</summary>
