@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DiscImageStudio.Core;
+using DiscImageStudio.Services;
 
 namespace DiscImageStudio.Desktop.ViewModels;
 
@@ -29,6 +31,10 @@ public partial class HomePageViewModel : ObservableObject
 
     public ObservableCollection<DiscFamilyCard> Families { get; }
 
+    public ObservableCollection<RecentProjectEntry> RecentProjects => _shell.RecentProjects;
+
+    public bool HasRecentProjects => RecentProjects.Count > 0;
+
     [RelayCommand]
     private void NewProject(DiscFamilyCard? card)
     {
@@ -37,6 +43,15 @@ public partial class HomePageViewModel : ObservableObject
 
     [RelayCommand]
     private Task OpenProject() => _shell.OpenProjectAsync();
+
+    [RelayCommand]
+    private void OpenRecent(RecentProjectEntry? entry)
+    {
+        if (entry is not null && File.Exists(entry.ProjectPath))
+        {
+            _shell.OpenProject(entry.ProjectPath);
+        }
+    }
 }
 
 public sealed record DiscFamilyCard(

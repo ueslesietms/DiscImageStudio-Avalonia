@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:svc="using:DiscImageStudio.Services"
              x:Class="DiscImageStudio.Desktop.Views.HomeView"
              x:DataType="vm:HomePageViewModel">
   <ScrollViewer>
@@ -43,11 +44,32 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Border Classes="card" Padding="22" MinHeight="120">
-        <StackPanel Spacing="6" VerticalAlignment="Center">
+      <Border Classes="card" Padding="18" MinHeight="120">
+        <StackPanel Spacing="8">
           <TextBlock Text="最近工程" FontSize="14" FontWeight="SemiBold" />
           <TextBlock Text="还没有打开过工程。新建一个，或者从磁盘打开 .discproj。"
-                     Classes="muted" FontSize="12" />
+                     Classes="muted" FontSize="12" IsVisible="{Binding !HasRecentProjects}" />
+          <ItemsControl ItemsSource="{Binding RecentProjects}" IsVisible="{Binding HasRecentProjects}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="svc:RecentProjectEntry">
+                <Button Classes="layerRow" Command="{Binding $parent[ItemsControl].((vm:HomePageViewModel)DataContext).OpenRecentCommand}"
+                        CommandParameter="{Binding}">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Border Background="{DynamicResource Surface3Brush}" Padding="6,1" CornerRadius="5"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="{Binding FamilyLabel}" Classes="badge" />
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" Spacing="1">
+                      <TextBlock Text="{Binding Name}" FontSize="13" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding ProjectPath}" Classes="micro" TextWrapping="NoWrap"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
         </StackPanel>
       </Border>
 

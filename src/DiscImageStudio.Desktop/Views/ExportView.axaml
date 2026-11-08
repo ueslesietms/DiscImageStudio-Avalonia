@@ -13,8 +13,13 @@
       <controls:PageHeader Title="{loc:Loc Xaml.Export}" Badge="{Binding FamilyLabel}"
                            Subtitle="{loc:Loc Xaml.ExportTheDesignCompositeAsABurnableImageAdjust}">
         <controls:PageHeader.Actions>
-          <Button Classes="primary" Content="{loc:Loc Xaml.NextBurn}"
-                  Command="{Binding GoNextCommand}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Classes="ghost" Content="保存工程" Padding="14,0"
+                    Background="{DynamicResource Surface2Brush}"
+                    Command="{Binding SaveProjectCommand}" />
+            <Button Classes="primary" Content="{loc:Loc Xaml.NextBurn}"
+                    Command="{Binding GoNextCommand}" />
+          </StackPanel>
         </controls:PageHeader.Actions>
       </controls:PageHeader>
 

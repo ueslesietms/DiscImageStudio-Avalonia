@@ -163,6 +163,8 @@ public partial class ExportPageViewModel : ObservableObject
     private static double ParseRadius(string text) =>
         double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ? value : double.NaN;
 
+    public System.Windows.Input.ICommand SaveProjectCommand => _shell.SaveProjectCommand;
+
     public bool HasMusicTracks => MusicTracks.Count > 0;
 
     /// <summary>CD 且没有随盘文件夹时才是音乐/图案音轨模式。</summary>

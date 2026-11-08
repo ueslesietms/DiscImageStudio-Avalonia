@@ -11,6 +11,10 @@
         FontFamily="{StaticResource AppFontFamily}"
         WindowDecorations="None">
 
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveProjectCommand}" />
+  </Window.KeyBindings>
+
   <Window.DataTemplates>
     <DataTemplate DataType="{x:Type vm:HomePageViewModel}">
       <views:HomeView />
@@ -100,6 +104,12 @@
                   Width="1" Height="12" VerticalAlignment="Center" Margin="4,0" />
           <TextBlock Text="{Binding ProjectTitle}" FontSize="12" IsVisible="{Binding IsProjectOpen}"
                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="360" />
+          <TextBlock Text="{Binding SaveStateText}" FontSize="11" IsVisible="{Binding IsDirty}"
+                     Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center" />
+          <Button Classes="chrome" Width="30" Height="24" ToolTip.Tip="保存工程"
+                  IsVisible="{Binding IsProjectOpen}" Command="{Binding SaveProjectCommand}">
+            <Path Classes="icon" Data="{StaticResource IconSave}" Width="13" Height="13" />
+          </Button>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal">
