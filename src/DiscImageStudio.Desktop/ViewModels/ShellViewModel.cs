@@ -29,12 +29,13 @@ public partial class ShellViewModel : ObservableObject
         Export = new ExportPageViewModel(this);
         Preview = new PreviewPageViewModel(this);
         Calibration = new CalibrationPageViewModel(this);
+        Burn = new BurnPageViewModel(this);
 
         _pages = new Dictionary<Workspace, object>
         {
             [Workspace.Design] = Design,
             [Workspace.Export] = Export,
-            [Workspace.Burn] = new WorkspacePageViewModel(Workspace.Burn, "刻录", "把镜像写入可报废的空白盘片。", "IconFlame"),
+            [Workspace.Burn] = Burn,
             [Workspace.Preview] = Preview,
             [Workspace.Calibration] = Calibration,
         };
@@ -77,6 +78,8 @@ public partial class ShellViewModel : ObservableObject
     public PreviewPageViewModel Preview { get; }
 
     public CalibrationPageViewModel Calibration { get; }
+
+    public BurnPageViewModel Burn { get; }
 
     /// <summary>共享参数状态：所有工作区绑定同一份。</summary>
     public DiscParametersState State { get; } = new();

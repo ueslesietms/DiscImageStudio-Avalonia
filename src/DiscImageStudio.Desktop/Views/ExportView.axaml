@@ -70,7 +70,7 @@
         </StackPanel>
       </controls:SectionCard>
 
-      <controls:SectionCard Header="盘片" Icon="{StaticResource IconDisc}">
+      <controls:SectionCard Header="盘片 - 详细设置请参见工程设置" Icon="{StaticResource IconDisc}">
         <StackPanel Spacing="8">
           <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}"
                     HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}">

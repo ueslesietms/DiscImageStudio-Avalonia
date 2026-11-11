@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <!-- Windows 上多一个目标，用来接原有的 IMAPI2 刻录实现；其他平台只保留 net10.0。 -->
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net10.0;net10.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

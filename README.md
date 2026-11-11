@@ -1,3 +1,34 @@
+# DiscImageStudio-Avalonia（社区 fork）
+
+> 本仓库 fork 自 [JiaFeiMiao-K-Cat/DiscImageStudio](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio)，分支 `avalonia-port` 做的是把桌面外壳迁移到 Avalonia，让 Linux / macOS 上也有图形界面可用。上游的 WPF 外壳和全部编码引擎都保留。
+
+**在打包后将会维持低维护频率甚至存档状态，暂无向上游提交PR的计划**
+
+- 大部分界面描述与新增的代码由AI生成，可能会导致难以维护
+- 非win平台可以用兼容层运行wpf，导致这个原生好像没什么必要
+- ~~只是消耗太多token了才推上来~~
+
+## 和上游的差异
+
+**已迁到 Avalonia 的部分**（`src/DiscImageStudio.Desktop`，目标 `net10.0`）
+
+- 窗口外壳：自绘标题栏、侧栏导航、起始页（新建 / 打开工程、最近工程列表）、无边框窗口与缩放热区
+- 设计页：自绘盘面画布（图层拖动 / 旋转 / 缩放、内容环引导、数据区遮罩）、图层列表与属性、影调面板（抖动 / 亮度 / 灰阶 / sRGB 线性化）
+- 导出页：盘片预设选择与管理（用户预设可保存 / 更新 / 删除）、音乐轨列表、输出路径、生成镜像（CD 支持真实音乐 + 图案拼接成单轨）
+- 预览页：设计合成图投影与 PNG 导出
+- 标定页：标定靶标生成（标准 / 粗 / 单线 / 细四种图案）、盘片照片透视矫正（手动拖动外缘与孔缘轮廓）、从照片量数据区内外半径
+- 工程：打开 / 保存 `.discproj`、脏标记与 Ctrl+S、最近工程记录、缩略图
+
+**尚未迁移或与上游行为不同**
+
+- **刻录页只有占位**：Windows 的 IMAPI 后端没有接到 Avalonia 外壳，Linux 侧也没有新的刻录后端
+- **标定流程未完整**：目前只到照片矫正和半径测量；宽带角度扫掠、弧长与时钟刻度的标注和拟合（`CalibrationFitter`）还没接，轨距多项式暂时只能手填
+- **音乐轨不落盘**：音轨列表只存在内存里，`.discproj` 还没有对应字段，保存工程会丢失
+- **DVD / 蓝光生成未实测**：代码路径已接，只完整跑过 CD
+- **多语言、设置窗口、任务日志 / Toast** 还没迁移，界面文案目前以简体中文为主
+
+---
+
 <div align="center">
 
 **简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md) | [日本語](README.ja.md) | [Türkçe](README.tr.md) | [Español](README.es.md) | [Čeština](README.cs.md)

@@ -34,6 +34,9 @@
     <DataTemplate DataType="{x:Type vm:CalibrationPageViewModel}">
       <views:CalibrationView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vm:BurnPageViewModel}">
+      <views:BurnView />
+    </DataTemplate>
   </Window.DataTemplates>
 
   <Window.Styles>
@@ -116,9 +119,9 @@
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal">
-          <Button Classes="chrome" ToolTip.Tip="设置" Click="Settings_Click">
+          <!-- <Button Classes="chrome" ToolTip.Tip="设置" Click="Settings_Click">
             <Path Classes="icon" Data="{StaticResource IconSettings}" Width="14" Height="14" />
-          </Button>
+          </Button> -->
           <Button Classes="chrome" ToolTip.Tip="最小化" Click="Minimize_Click">
             <Path Classes="icon" Data="{StaticResource IconWinMinimize}" Width="12" Height="12" />
           </Button>
@@ -178,12 +181,31 @@
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- 工程设置：和导出页的「工程设置…」共用同一条命令 -->
+            <Button Classes="nav" Margin="0,10,0,0"
+                    Command="{Binding Export.OpenProjectSettingsCommand}"
+                    ToolTip.Tip="工程设置" IsVisible="{Binding IsProjectOpen}">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Path Classes="icon" Data="{StaticResource IconSettings}" Width="16" Height="16" />
+                <TextBlock Text="工程设置" VerticalAlignment="Center"
+                           IsVisible="{Binding !IsSidebarCollapsed}" />
+              </StackPanel>
+            </Button>
           </StackPanel>
 
           <Button Grid.Row="1" Classes="ghost" Height="36" Margin="0,8,0,12" Padding="0"
                   HorizontalContentAlignment="Center" Command="{Binding ToggleSidebarCommand}"
                   ToolTip.Tip="收起侧栏">
-            <Path Classes="icon" Data="{StaticResource IconChevronLeft}" Width="18" Height="18" />
+            <Panel>
+              <Path Classes="icon" Width="18" Height="18" HorizontalAlignment="Center"
+                    Data="{StaticResource IconChevronLeft}"
+                    IsVisible="{Binding !IsSidebarCollapsed}" />
+              <Path Classes="icon" Width="18" Height="18" HorizontalAlignment="Center"
+                    Data="{StaticResource IconChevronRight}"
+                    IsVisible="{Binding IsSidebarCollapsed}" />
+            </Panel>
+
           </Button>
         </Grid>
       </Border>
