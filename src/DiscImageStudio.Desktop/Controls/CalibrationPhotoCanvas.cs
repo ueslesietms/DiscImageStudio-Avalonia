@@ -804,10 +804,11 @@ public sealed class CalibrationPhotoCanvas : Control
             IBrush brush = kind == CalibrationPhotoBoundaryKind.OuterEdge ? EdgeBrush : HubOutlineBrush;
             CalibrationPhotoBoundaryPoint[] points = BoundaryPoints?.Where(p => p.Boundary == kind).OrderBy(p => p.Index).ToArray() ?? [];
             Point[]? outline = BoundaryContours?.ElementAtOrDefault((int)kind);
+            // 控制点之间按平滑曲线连：盘缘和孔缘是圆弧，画成折线会误导轮廓判断。
             if (_boundaryDrag?.Boundary == kind || outline is not { Length: > 2 })
-                DrawPath(context, points.Select(BoundaryDisplayPosition).ToArray(),
-                    new Pen(brush, 1.3) { DashStyle = new DashStyle([4, 3], 0) }, true);
-            else DrawPath(context, outline, new Pen(brush, 1.6), true);
+                DrawSmoothPath(context, points.Select(BoundaryDisplayPosition).ToArray(),
+                    new Pen(brush, 1.3) { DashStyle = new DashStyle([4, 3], 0) });
+            else DrawSmoothPath(context, outline, new Pen(brush, 1.6));
             foreach (CalibrationPhotoBoundaryPoint point in points)
             {
                 bool selected = _boundaryDrag?.Boundary == point.Boundary && _boundaryDrag.Index == point.Index;
@@ -827,6 +828,28 @@ public sealed class CalibrationPhotoCanvas : Control
             double viewRadius = Dist(WorldToView(new Point(r, 0)), center);
             context.DrawEllipse(null, pen, center, viewRadius, viewRadius);
         }
+    }
+
+    /// <summary>闭合平滑曲线：用相邻点中点作为端点、原控制点作为二次贝塞尔控制点。</summary>
+    private void DrawSmoothPath(DrawingContext context, IReadOnlyList<Point> points, Pen pen)
+    {
+        if (points.Count < 3) return;
+        Point[] screen = points.Select(WorldToView).ToArray();
+        if (screen.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y))) return;
+        static Point Mid(Point a, Point b) => new((a.X + b.X) / 2, (a.Y + b.Y) / 2);
+        var geometry = new StreamGeometry();
+        using (StreamGeometryContext path = geometry.Open())
+        {
+            path.BeginFigure(Mid(screen[0], screen[^1]), false);
+            for (int i = 0; i < screen.Length; i++)
+            {
+                path.QuadraticBezierTo(screen[i], Mid(screen[i], screen[(i + 1) % screen.Length]));
+            }
+
+            path.EndFigure(true);
+        }
+
+        context.DrawGeometry(null, pen, geometry);
     }
 
     private void DrawPath(DrawingContext context, IReadOnlyList<Point> points, Pen pen, bool closed)
