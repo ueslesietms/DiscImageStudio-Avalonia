@@ -851,20 +851,26 @@ public sealed class CalibrationPhotoCanvas : Control
         return (center, Dist(center, a));
     }
 
-    /// <summary>闭合平滑曲线：用相邻点中点作为端点、原控制点作为二次贝塞尔控制点。</summary>
+    /// <summary>闭合 Catmull-Rom 样条：曲线严格穿过每个控制点，切线由相邻点决定。</summary>
     private void DrawSmoothPath(DrawingContext context, IReadOnlyList<Point> points, Pen pen)
     {
         if (points.Count < 3) return;
         Point[] screen = points.Select(WorldToView).ToArray();
         if (screen.Any(p => !double.IsFinite(p.X) || !double.IsFinite(p.Y))) return;
-        static Point Mid(Point a, Point b) => new((a.X + b.X) / 2, (a.Y + b.Y) / 2);
+        int n = screen.Length;
         var geometry = new StreamGeometry();
         using (StreamGeometryContext path = geometry.Open())
         {
-            path.BeginFigure(Mid(screen[0], screen[^1]), false);
-            for (int i = 0; i < screen.Length; i++)
+            path.BeginFigure(screen[0], false);
+            for (int i = 0; i < n; i++)
             {
-                path.QuadraticBezierTo(screen[i], Mid(screen[i], screen[(i + 1) % screen.Length]));
+                Point p0 = screen[(i - 1 + n) % n];
+                Point p1 = screen[i];
+                Point p2 = screen[(i + 1) % n];
+                Point p3 = screen[(i + 2) % n];
+                var c1 = new Point(p1.X + (p2.X - p0.X) / 6, p1.Y + (p2.Y - p0.Y) / 6);
+                var c2 = new Point(p2.X - (p3.X - p1.X) / 6, p2.Y - (p3.Y - p1.Y) / 6);
+                path.CubicBezierTo(c1, c2, p2);
             }
 
             path.EndFigure(true);
