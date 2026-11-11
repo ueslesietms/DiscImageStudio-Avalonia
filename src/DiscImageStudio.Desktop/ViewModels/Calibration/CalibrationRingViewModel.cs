@@ -44,6 +44,7 @@ public partial class CalibrationViewModel
         : L.Format("Rings.PointsCount", RingPointMarkers.Count));
     public RelayCommand<CalibrationPoint> RingPointCommand { get; private set; } = null!;
     public RelayCommand UndoRingPointCommand { get; private set; } = null!;
+    public RelayCommand<RingPointEdit> RingPointMoveCommand { get; private set; } = null!;
     public RelayCommand RestartRingPointsCommand { get; private set; } = null!;
 
     public RelayCommand SelectCoarseModeCommand { get; private set; } = null!;
@@ -142,6 +143,8 @@ public partial class CalibrationViewModel
         RingEditedCommand = new RelayCommand<CalibrationRingEdit>(EditRing, _ => CanMeasureRings() && IsDragRingMode);
         RingPointCommand = new RelayCommand<CalibrationPoint>(AddRingPoint,
             _ => CanMarkPoints() && RingPointMarkers.Count < 3);
+        RingPointMoveCommand = new RelayCommand<RingPointEdit>(MoveRingPoint,
+            _ => CanMarkPoints() && RingPointMarkers.Count > 0);
         UndoRingPointCommand = new RelayCommand(UndoRingPoint,
             () => CanMarkPoints() && RingPointMarkers.Count > 0);
         RestartRingPointsCommand = new RelayCommand(RestartRingPoints,
@@ -321,6 +324,30 @@ public partial class CalibrationViewModel
             }
             return;
         }
+        if (RingArcs[SelectedRingIndex].IsConfirmed) ReplaceRing(SelectedRingIndex, null);
+        SetRingMarkers(points);
+    }
+
+    /// <summary>拖动画布上的已放标记点：重算这段圆弧，仍要求落在孔与盘缘之间。</summary>
+    private void MoveRingPoint(RingPointEdit? edit)
+    {
+        if (edit is null || !CanMarkPoints()) return;
+        if ((uint)edit.Index >= (uint)RingPointMarkers.Count) return;
+        double radius = Math.Sqrt(edit.X * edit.X + edit.Y * edit.Y);
+        if (!double.IsFinite(radius) || radius < 7.5 || radius > SelectedPhysicalDiscSize.OuterRadiusMm) return;
+        CalibrationPoint[] points = RingPointMarkers.ToArray();
+        points[edit.Index] = new CalibrationPoint(edit.X, edit.Y);
+        if (points.Length == 3)
+        {
+            try
+            {
+                double measured = CalibrationRingFitter.MeasureArc(points, SelectedPhysicalDiscSize.OuterRadiusMm);
+                ReplaceRing(SelectedRingIndex, measured, points);
+            }
+            catch (ArgumentException ex) { SetRingMarkers(points, L.Error(ex)); }
+            return;
+        }
+
         if (RingArcs[SelectedRingIndex].IsConfirmed) ReplaceRing(SelectedRingIndex, null);
         SetRingMarkers(points);
     }

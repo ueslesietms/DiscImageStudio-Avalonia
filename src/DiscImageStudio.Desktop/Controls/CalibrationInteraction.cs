@@ -19,6 +19,9 @@ public sealed record CalibrationRingArc(int RingIndex, double RadiusMm, bool IsC
         L.Format(id < 3 ? "BandEdges.InnerLabel" : "BandEdges.OuterLabel", id % 3 + 1);
     public string ShortEdgeLabel => L.Format(RingIndex < 3 ? "BandEdges.InnerBadge" : "BandEdges.OuterBadge", RingIndex % 3 + 1);
 }
+/// <summary>拖动已放的圆弧采样点；坐标是盘心毫米。</summary>
+public sealed record RingPointEdit(int Index, double X, double Y);
+
 /// <summary>A null radius returns the guide to its unmeasured state.</summary>
 public sealed record CalibrationRingEdit(int RingIndex, double? RadiusMm);
 

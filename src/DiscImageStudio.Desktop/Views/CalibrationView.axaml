@@ -94,6 +94,7 @@
                                              RingPointCommand="{Binding RingPointCommand}"
                                              UndoRingPointCommand="{Binding UndoRingPointCommand}"
                                              RingEditedCommand="{Binding RingEditedCommand}"
+                                             RingPointEditedCommand="{Binding RingPointMoveCommand}"
                                             
                                              HasWideBandTarget="{Binding HasWideBandTarget}"
                                              IsBandRayMode="{Binding IsBandRayMode}"
@@ -302,6 +303,12 @@
                 <TextBlock Text="{Binding RingOperationHint}" Classes="micro" TextWrapping="Wrap" />
                 <TextBlock Text="{Binding BandRaySummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsBandRayMode}" />
                 <TextBlock Text="{Binding RingPointSummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding ThreePointMode}" />
+                <WrapPanel IsVisible="{Binding ThreePointMode}">
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.CoarseRingUndoPoint}"
+                          Command="{Binding UndoRingPointCommand}" Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.CoarseRingRestartPoints}"
+                          Command="{Binding RestartRingPointsCommand}" />
+                </WrapPanel>
                 <TextBlock Text="{Binding CoarseSummary}" Classes="micro" TextWrapping="Wrap" />
                 <TextBlock Text="{Binding BandIntervalSummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding HasWideBandTarget}" />
                 <Button Classes="primary" Content="{Binding RingSolveLabel}" Command="{Binding SolveRingsCommand}" />

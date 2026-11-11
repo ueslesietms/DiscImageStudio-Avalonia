@@ -101,6 +101,8 @@ public sealed class CalibrationPhotoCanvas : Control
         AvaloniaProperty.Register<CalibrationPhotoCanvas, ICommand?>(nameof(RingPointCommand));
     public static readonly StyledProperty<ICommand?> UndoRingPointCommandProperty =
         AvaloniaProperty.Register<CalibrationPhotoCanvas, ICommand?>(nameof(UndoRingPointCommand));
+    public static readonly StyledProperty<ICommand?> RingPointEditedCommandProperty =
+        AvaloniaProperty.Register<CalibrationPhotoCanvas, ICommand?>(nameof(RingPointEditedCommand));
     public static readonly StyledProperty<ICommand?> RingEditedCommandProperty =
         AvaloniaProperty.Register<CalibrationPhotoCanvas, ICommand?>(nameof(RingEditedCommand));
     public static readonly StyledProperty<double> RingAngleDegreesProperty =
@@ -151,6 +153,7 @@ public sealed class CalibrationPhotoCanvas : Control
     public ICommand? RingPointCommand { get => GetValue(RingPointCommandProperty); set => SetValue(RingPointCommandProperty, value); }
     public ICommand? UndoRingPointCommand { get => GetValue(UndoRingPointCommandProperty); set => SetValue(UndoRingPointCommandProperty, value); }
     public ICommand? RingEditedCommand { get => GetValue(RingEditedCommandProperty); set => SetValue(RingEditedCommandProperty, value); }
+    public ICommand? RingPointEditedCommand { get => GetValue(RingPointEditedCommandProperty); set => SetValue(RingPointEditedCommandProperty, value); }
     public double RingAngleDegrees { get => GetValue(RingAngleDegreesProperty); set => SetValue(RingAngleDegreesProperty, value); }
     public double PhysicalRadiusMm { get => GetValue(PhysicalRadiusMmProperty); set => SetValue(PhysicalRadiusMmProperty, value); }
     public bool ShowPrediction { get => GetValue(ShowPredictionProperty); set => SetValue(ShowPredictionProperty, value); }
@@ -187,6 +190,7 @@ public sealed class CalibrationPhotoCanvas : Control
     private CalibrationPhotoBoundaryPoint? _boundaryDrag;
     private CalibrationTracePoint? _traceDrag;
     private CalibrationRingArc? _ringDrag;
+    private int _ringPointDragIndex = -1;
     private double _ringDragRadius;
     private double _ringDragStartRadius;
     private int? _selectedRing;
@@ -206,7 +210,8 @@ public sealed class CalibrationPhotoCanvas : Control
     private bool CanMarkBandRay => ShowingEditablePhoto && IsCoarseMode && HasWideBandTarget && IsBandRayMode;
     private bool ShowingClockPhoto => ShowingEditablePhoto && IsCoarseMode && HasClockTarget;
     private bool CanMarkArcLength => ShowingEditablePhoto && IsCoarseMode && HasRadialArcTarget;
-    private bool Dragging => _boundaryDrag is not null || _traceDrag is not null || _ringDrag is not null;
+    private bool Dragging => _boundaryDrag is not null || _traceDrag is not null
+        || _ringDrag is not null || _ringPointDragIndex >= 0;
     private double RingAngle => RingAngleDegrees * Math.PI / 180;
 
     private Rect WorldBounds
@@ -354,6 +359,28 @@ public sealed class CalibrationPhotoCanvas : Control
 
     public bool BeginDragAt(Point screen)
     {
+        if (CanEditRings && ThreePointMode && RingPointMarkers is { Count: > 0 } markers)
+        {
+            int hit = -1;
+            double best = 100;
+            for (int i = 0; i < markers.Count; i++)
+            {
+                double distance = DistSquared(WorldToView(new Point(markers[i].X, markers[i].Y)), screen);
+                if (distance < best) { best = distance; hit = i; }
+            }
+
+            if (hit >= 0)
+            {
+                _ringPointDragIndex = hit;
+                _dragOriginal = new Point(markers[hit].X, markers[hit].Y);
+                _dragPosition = _dragOriginal;
+                _dragStart = ViewToWorld(screen);
+                _hasMoved = false;
+                InvalidateVisual();
+                return true;
+            }
+        }
+
         if (CanEditRings && !ThreePointMode)
         {
             if (HitRing(screen) is { } ring)
@@ -446,13 +473,17 @@ public sealed class CalibrationPhotoCanvas : Control
         CalibrationPhotoBoundaryPoint? boundary = _boundaryDrag;
         CalibrationTracePoint? trace = _traceDrag;
         CalibrationRingArc? ring = _ringDrag;
+        int ringPoint = _ringPointDragIndex;
         Point position = _dragPosition;
         bool changed = _hasMoved && commit;
         _boundaryDrag = null;
         _traceDrag = null;
         _ringDrag = null;
+        _ringPointDragIndex = -1;
         _hasMoved = false;
         Log($"complete changed={changed} at={position}");
+        if (changed && ringPoint >= 0)
+            Execute(RingPointEditedCommand, new RingPointEdit(ringPoint, position.X, position.Y));
         if (changed && boundary is not null)
             Execute(BoundaryEditedCommand, new CalibrationBoundaryEdit(boundary.Boundary, boundary.Index, position.X, position.Y));
         if (changed && trace is not null)
@@ -711,8 +742,9 @@ public sealed class CalibrationPhotoCanvas : Control
 
         for (int i = 0; i < points.Count; i++)
         {
-            Point position = WorldToView(new Point(points[i].X, points[i].Y));
-            context.DrawEllipse(HubOutlineBrush, new Pen(OutlineBrush, 1), position, 3.5, 3.5);
+            Point position = WorldToView(_ringPointDragIndex == i ? _dragPosition : new Point(points[i].X, points[i].Y));
+            context.DrawEllipse(HubOutlineBrush, new Pen(OutlineBrush, _ringPointDragIndex == i ? 2 : 1),
+                position, _ringPointDragIndex == i ? 5 : 3.5, _ringPointDragIndex == i ? 5 : 3.5);
             FormattedText label = Text((i + 1).ToString(CultureInfo.CurrentCulture), 11, HandleBrush);
             Point at = position + new Vector(5, -label.Height);
             context.DrawRectangle(CaptionBrush, null, new Rect(at.X - 2, at.Y, label.Width + 4, label.Height), 2, 2);
@@ -735,8 +767,9 @@ public sealed class CalibrationPhotoCanvas : Control
 
         for (int i = 0; i < points.Count; i++)
         {
-            Point position = WorldToView(new Point(points[i].X, points[i].Y));
-            context.DrawEllipse(HubOutlineBrush, new Pen(OutlineBrush, 1), position, 3.5, 3.5);
+            Point position = WorldToView(_ringPointDragIndex == i ? _dragPosition : new Point(points[i].X, points[i].Y));
+            context.DrawEllipse(HubOutlineBrush, new Pen(OutlineBrush, _ringPointDragIndex == i ? 2 : 1),
+                position, _ringPointDragIndex == i ? 5 : 3.5, _ringPointDragIndex == i ? 5 : 3.5);
             FormattedText label = Text((i + 1).ToString(CultureInfo.CurrentCulture), 11, HandleBrush);
             Point at = position + new Vector(5, -label.Height);
             context.DrawRectangle(CaptionBrush, null, new Rect(at.X - 2, at.Y, label.Width + 4, label.Height), 2, 2);
