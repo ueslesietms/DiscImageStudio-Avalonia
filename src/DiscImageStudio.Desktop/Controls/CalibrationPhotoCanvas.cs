@@ -381,9 +381,9 @@ public sealed class CalibrationPhotoCanvas : Control
 
             if (hit is not null && best <= 12 * 12)
             {
+                _dragOriginal = new Point(hit.X, hit.Y);
                 _boundaryDrag = hit;
                 _dragStart = ViewToWorld(screen);
-                _dragOriginal = BoundaryDisplayPosition(hit);
                 _dragPosition = _dragOriginal;
                 _hasMoved = false;
                 InvalidateVisual();
@@ -403,9 +403,9 @@ public sealed class CalibrationPhotoCanvas : Control
 
             if (hit is not null && best <= 10 * 10)
             {
+                _dragOriginal = new Point(hit.XMm, hit.YMm);
                 _traceDrag = hit;
                 _dragStart = ViewToWorld(screen);
-                _dragOriginal = TraceDisplayPosition(hit);
                 _dragPosition = _dragOriginal;
                 _hasMoved = false;
                 _selectedTrace = (hit.Arm, hit.Index);
