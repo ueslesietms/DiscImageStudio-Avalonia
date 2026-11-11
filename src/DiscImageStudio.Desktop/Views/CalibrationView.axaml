@@ -328,6 +328,20 @@
                          IsVisible="{Binding HasClockTarget}" />
 
               <StackPanel Spacing="6" IsVisible="{Binding IsLineFitStep}">
+                <!-- 描线点编辑：每个标定阶段都要能撤掉点错的、清空重来；边界段模式还要管段。 -->
+                <WrapPanel>
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.DeletePoint}" Click="OnRemoveTracePoint" Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.ClearCurves}" Command="{Binding ClearTracesCommand}" />
+                </WrapPanel>
+                <WrapPanel IsVisible="{Binding HasBoundarySegments}" Margin="0,0,0,4">
+                  <ComboBox ItemsSource="{Binding BoundarySegmentChoices}"
+                            SelectedValue="{Binding SelectedTraceArm, Mode=TwoWay}" SelectedValueBinding="{Binding Id}"
+                            MinWidth="120" Margin="0,0,8,0">
+                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <Button Classes="ghost" Content="{loc:Loc HalfDisc.AddSegment}" Command="{Binding AddBoundarySegmentCommand}" Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc HalfDisc.DeleteSegment}" Command="{Binding DeleteBoundarySegmentCommand}" />
+                </WrapPanel>
                 <TextBlock Text="{Binding FineInitialSummary}" Classes="micro" TextWrapping="Wrap" />
                 <Button Classes="ghost" Content="{loc:Loc Xaml.UseMeasuredRingSeed}" Command="{Binding UseRingSeedCommand}"
                         IsVisible="{Binding HasAvailableRingSeed}" />

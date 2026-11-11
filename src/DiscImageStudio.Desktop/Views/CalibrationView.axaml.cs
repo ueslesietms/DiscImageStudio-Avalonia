@@ -7,6 +7,8 @@ public partial class CalibrationView : UserControl
 {
     public CalibrationView() => InitializeComponent();
 
+    private void OnRemoveTracePoint(object? sender, RoutedEventArgs e) => PhotoCanvas.RemoveSelectedTracePoint();
+
     private void OnZoomIn(object? sender, RoutedEventArgs e) => PhotoCanvas.ZoomAt(1.2, Center());
 
     private void OnZoomOut(object? sender, RoutedEventArgs e) => PhotoCanvas.ZoomAt(1 / 1.2, Center());
