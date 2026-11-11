@@ -218,9 +218,14 @@ public sealed class CalibrationPhotoCanvas : Control
         }
     }
 
-    private Matrix ViewMatrix
+    /// <summary>渲染时实际使用的变换。命中测试和拖动都读它，保证点下去的位置就是看到的位置。</summary>
+    private Matrix _renderMatrix = Matrix.Identity;
+    private bool _hasRenderMatrix;
+
+    private Matrix ViewMatrix => _hasRenderMatrix ? _renderMatrix : ComputeViewMatrix();
+
+    private Matrix ComputeViewMatrix()
     {
-        get
         {
             Rect bounds = WorldBounds;
             double width = Bounds.Width, height = Bounds.Height;
@@ -276,6 +281,8 @@ public sealed class CalibrationPhotoCanvas : Control
 
     public override void Render(DrawingContext context)
     {
+        _renderMatrix = ComputeViewMatrix();
+        _hasRenderMatrix = true;
         context.DrawRectangle(PhotoBackdrop, null, new Rect(Bounds.Size));
         Bitmap? bitmap = ShowingTarget ? FallbackImage : Image;
         Rect bounds = WorldBounds;
@@ -538,6 +545,12 @@ public sealed class CalibrationPhotoCanvas : Control
     {
         base.OnPointerPressed(e);
         Focus();
+        if (!_hasRenderMatrix)
+        {
+            _renderMatrix = ComputeViewMatrix();
+            _hasRenderMatrix = true;
+        }
+
         PointerPoint point = e.GetCurrentPoint(this);
         Point position = point.Position;
         bool space = false;
