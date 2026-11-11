@@ -61,6 +61,15 @@
           </StackPanel>
         </Grid>
 
+        <StackPanel Spacing="6">
+          <Button Classes="ghost" Content="从光驱读取容量" HorizontalAlignment="Left"
+                  Height="{StaticResource CompactHeight}" Padding="12,0"
+                  Background="{DynamicResource Surface2Brush}"
+                  Command="{Binding ReadFromDriveCommand}" />
+          <TextBlock Classes="micro" TextWrapping="Wrap"
+                     Text="插好盘后点一下，只填总扇区；内外半径得靠标定量出来，读不到。" />
+        </StackPanel>
+
         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
           <StackPanel Spacing="6">
             <TextBlock Classes="micro" Text="总扇区数" />

@@ -113,6 +113,39 @@ public partial class DiscSettingsViewModel : ObservableObject
 
     public bool CanManagePreset => SelectedPreset?.IsUserPreset == true;
 
+    /// <summary>插好盘后直接读光驱：把总扇区填进来（半径没法从盘上读，仍需标定）。</summary>
+    [RelayCommand]
+    private async Task ReadFromDriveAsync()
+    {
+        try
+        {
+            PresetMessage = "正在读取光驱…";
+            IDiscBurner burner = BurnerFactory.Create();
+            IReadOnlyList<BurnDevice> devices = await burner.GetDevicesAsync();
+            if (devices.Count == 0)
+            {
+                PresetMessage = "没有找到光驱。";
+                return;
+            }
+
+            BurnDevice device = devices[0];
+            BurnMediaInfo? media = await burner.GetMediaAsync(device.Id);
+            if (media is null || media.TotalSectors <= 0)
+            {
+                PresetMessage = "读不到盘片容量（空仓或介质无法识别）。";
+                return;
+            }
+
+            Sectors = media.TotalSectors.ToString(CultureInfo.InvariantCulture);
+            UsableSectors = string.Empty;
+            PresetMessage = L.F($"已从 {device.Id} 读取：{media.Description}，{media.TotalSectors:N0} 扇区。");
+        }
+        catch (Exception exception)
+        {
+            PresetMessage = exception.Message;
+        }
+    }
+
     [RelayCommand]
     private void SaveAsPreset()
     {
