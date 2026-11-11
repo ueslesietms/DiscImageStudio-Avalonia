@@ -28,7 +28,7 @@ public partial class ShellViewModel : ObservableObject
         Design = new DesignPageViewModel(this);
         Export = new ExportPageViewModel(this);
         Preview = new PreviewPageViewModel(this);
-        Calibration = new CalibrationPageViewModel(this);
+        Calibration = new ViewModels.Calibration.CalibrationViewModel(this, State);
         Burn = new BurnPageViewModel(this);
 
         _pages = new Dictionary<Workspace, object>
@@ -77,7 +77,7 @@ public partial class ShellViewModel : ObservableObject
 
     public PreviewPageViewModel Preview { get; }
 
-    public CalibrationPageViewModel Calibration { get; }
+    public ViewModels.Calibration.CalibrationViewModel Calibration { get; }
 
     public BurnPageViewModel Burn { get; }
 

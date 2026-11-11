@@ -1,120 +1,348 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:DiscImageStudio.Desktop.Localization"
-             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels.Calibration"
              xmlns:controls="using:DiscImageStudio.Desktop.Controls"
-             xmlns:conv="using:Avalonia.Data.Converters"
              x:Class="DiscImageStudio.Desktop.Views.CalibrationView"
-             x:DataType="vm:CalibrationPageViewModel">
-  <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,*">
+             x:DataType="vm:CalibrationViewModel">
+  <Grid Margin="{StaticResource PagePadding}" RowDefinitions="Auto,Auto,*">
 
-    <controls:PageHeader Title="{loc:Loc Xaml.Calibration}" Badge="{Binding FamilyLabel}"
-                         Subtitle="从一张正拍的盘片照片量出数据区内/外半径，写回当前参数。">
+    <controls:PageHeader Title="{loc:Loc Xaml.Calibration}" Subtitle="{loc:Loc Xaml.UseDiscImageStudioSBuiltInAlgorithmsTo}">
       <controls:PageHeader.Actions>
-        <Button Classes="primary" Content="回到设计" Command="{Binding GoBackCommand}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Classes="ghost" Content="{loc:Loc Xaml.SaveAsPreset}" Command="{Binding SaveAsPresetCommand}" />
+          <Button Classes="ghost" Content="{loc:Loc Standalone.Back}" Command="{Binding ReturnFromCalibrationCommand}" />
+        </StackPanel>
       </controls:PageHeader.Actions>
     </controls:PageHeader>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,Auto">
+    <!-- 三个阶段：粗测（角度扫掠/宽带）、单线（半盘边界）、细测（十字/弧长/时钟）。 -->
+    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="20" Margin="0,0,0,10">
+      <RadioButton GroupName="CalibrationPhase" IsChecked="{Binding IsCoarseMode, Mode=OneWay}"
+                   Command="{Binding SelectCoarseModeCommand}">
+        <StackPanel>
+          <TextBlock Text="{loc:Loc Xaml.CoarseCalibrationPhase}" FontWeight="SemiBold" />
+          <TextBlock Text="{loc:Loc Xaml.CoarseCalibrationPurpose}" Classes="micro" TextWrapping="Wrap" MaxWidth="260" />
+        </StackPanel>
+      </RadioButton>
+      <RadioButton GroupName="CalibrationPhase" IsChecked="{Binding IsIntermediateMode, Mode=OneWay}"
+                   Command="{Binding SelectIntermediateModeCommand}">
+        <StackPanel>
+          <TextBlock Text="{loc:Loc HalfDisc.Stage}" FontWeight="SemiBold" />
+          <TextBlock Text="{loc:Loc HalfDisc.Purpose}" Classes="micro" TextWrapping="Wrap" MaxWidth="260" />
+        </StackPanel>
+      </RadioButton>
+      <RadioButton GroupName="CalibrationPhase" IsChecked="{Binding IsFineMode, Mode=OneWay}"
+                   Command="{Binding SelectFineModeCommand}">
+        <StackPanel>
+          <TextBlock Text="{loc:Loc Xaml.FineCalibrationPhase}" FontWeight="SemiBold" />
+          <TextBlock Text="{loc:Loc Xaml.FineCalibrationPurpose}" Classes="micro" TextWrapping="Wrap" MaxWidth="260" />
+        </StackPanel>
+      </RadioButton>
+    </StackPanel>
 
+    <Grid Grid.Row="2" ColumnDefinitions="*,16,330">
+
+      <!-- 舞台：照片、标靶预览和所有叠加层。 -->
       <Border Classes="card" Padding="0" ClipToBounds="True">
-        <Grid RowDefinitions="Auto,*">
-          <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="12,8">
-            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
-              <Button Classes="primary" Content="导入照片" Height="{StaticResource CompactHeight}"
-                      Command="{Binding LoadPhotoCommand}" />
-              <Button Grid.Column="1" Classes="ghost" Content="撤销" Margin="8,0,0,0"
-                      Height="{StaticResource CompactHeight}" Padding="12,0"
-                      Background="{DynamicResource Surface2Brush}" Command="{Binding UndoCommand}" />
-              <Button Grid.Column="2" Classes="ghost" Content="清空当前边" Margin="8,0,0,0"
-                      Height="{StaticResource CompactHeight}" Padding="12,0"
-                      Background="{DynamicResource Surface2Brush}" Command="{Binding ClearActiveCommand}" />
-              <TextBlock Grid.Column="4" Classes="micro" VerticalAlignment="Center"
-                         Text="{Binding CountsText}" />
+        <Grid RowDefinitions="Auto,*,Auto">
+          <Border BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,0,0,1" Padding="10,6">
+            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto">
+              <Button Classes="ghost" Content="−" Width="30" Height="26" Padding="0"
+                      Click="OnZoomOut" ToolTip.Tip="{loc:Loc Xaml.ZoomOut}" />
+              <Button Grid.Column="1" Classes="ghost" Content="+" Width="30" Height="26" Padding="0" Margin="6,0,0,0"
+                      Click="OnZoomIn" ToolTip.Tip="{loc:Loc Xaml.ZoomIn}" />
+              <Button Grid.Column="2" Classes="ghost" Content="{loc:Loc Xaml.FitToWindow}" Height="26" Margin="8,0,0,0"
+                      Padding="10,0" Click="OnResetView" />
+              <TextBlock Grid.Column="3" Text="{Binding ViewDescription, ElementName=PhotoCanvas}"
+                         Classes="micro" VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="40" />
+              <CheckBox Grid.Column="5" Content="{loc:Loc Xaml.ShowBurnPattern}" Classes="micro"
+                        IsChecked="{Binding ShowTargetPreview}" Margin="0,0,10,0" />
+              <CheckBox Grid.Column="6" Content="{loc:Loc Xaml.ShowRectifiedPreview}" Classes="micro"
+                        IsChecked="{Binding PreviewRectification, Mode=TwoWay}"
+                        IsEnabled="{Binding IsRectificationReady}" Margin="0,0,10,0"
+                        IsVisible="{Binding IsPhotoStep}" />
+              <CheckBox Grid.Column="7" Content="{loc:Loc Xaml.OverlayFittedCurves}" Classes="micro"
+                        IsChecked="{Binding ShowPrediction}" IsVisible="{Binding IsLineFitStep}" />
             </Grid>
           </Border>
 
-          <Panel Grid.Row="1" Background="#0B0B0D" MinHeight="480">
-            <controls:CalibrationPhotoCanvas Design="{Binding}" />
-            <TextBlock Text="先导入一张盘片照片" Classes="secondary" HorizontalAlignment="Center"
-                       VerticalAlignment="Center" IsVisible="{Binding !HasPhoto}" />
+          <Panel Grid.Row="1" Background="#0B0B0D" MinHeight="420">
+            <controls:CalibrationPhotoCanvas x:Name="PhotoCanvas"
+                                             Image="{Binding PhotoImage}"
+                                             FallbackImage="{Binding TargetImage}"
+                                             IsPhotoStep="{Binding IsPhotoStep}"
+                                             IsRectificationPreview="{Binding PreviewRectification}"
+                                             IsTargetPreview="{Binding ShowTargetPreview}"
+                                             CanvasRadiusMm="{Binding PhotoCanvasRadiusMm}"
+                                             TargetCanvasRadiusMm="{Binding CanvasOuterRadiusMm}"
+                                             PhysicalRadiusMm="{Binding SelectedPhysicalDiscSize.OuterRadiusMm}"
+                                             BoundaryPoints="{Binding PhotoBoundaryPoints}"
+                                             BoundaryContours="{Binding PhotoBoundaryContours}"
+                                             BoundaryEditedCommand="{Binding BoundaryEditedCommand}"
+                                             TracePoints="{Binding TracePoints}"
+                                             TraceEditedCommand="{Binding TraceEditedCommand}"
+                                             PredictionContours="{Binding CrossPredictionContours}"
+                                             OutlierTracePointIndices="{Binding OutlierTracePointIndices}"
+                                             SelectedTraceArm="{Binding SelectedTraceArm, Mode=TwoWay}"
+                                             IsBoundarySegmentMode="{Binding HasBoundarySegments}"
+                                             IsCoarseMode="{Binding IsCoarseMode}"
+                                             RingArcs="{Binding RingArcs}"
+                                             ThreePointMode="{Binding ThreePointMode}"
+                                             SelectedRingIndex="{Binding SelectedRingIndex, Mode=TwoWay}"
+                                             RingPointMarkers="{Binding RingPointMarkers}"
+                                             RingPointCommand="{Binding RingPointCommand}"
+                                             UndoRingPointCommand="{Binding UndoRingPointCommand}"
+                                             RingEditedCommand="{Binding RingEditedCommand}"
+                                            
+                                             HasWideBandTarget="{Binding HasWideBandTarget}"
+                                             IsBandRayMode="{Binding IsBandRayMode}"
+                                             BandRayAngleDegrees="{Binding BandRayAngleDegrees}"
+                                             BandRayPointCommand="{Binding BandRayPointCommand}"
+                                             HasRadialArcTarget="{Binding HasRadialArcTarget}"
+                                             ArcLengthPoints="{Binding ArcLengthPoints}"
+                                             ArcLengthPointCommand="{Binding ArcLengthPointCommand}"
+                                             UndoArcLengthPointCommand="{Binding UndoArcLengthPointCommand}"
+                                             HasClockTarget="{Binding HasClockTarget}"
+                                             ClockReadAngles="{Binding ClockReadAngles}"
+                                             PreferredClockAngle="{Binding PreferredClockAngle}"
+                                             PreferClockAngleCommand="{Binding PreferClockAngleCommand}"
+                                             ShowPrediction="{Binding ShowPrediction}"
+                                             IsVisible="{Binding !NeedsStageTarget}" />
+            <TextBlock Text="{loc:Loc Stages.NewTargetHint}" Classes="secondary" TextWrapping="Wrap"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="24"
+                       IsVisible="{Binding NeedsStageTarget}" />
           </Panel>
+
+          <StackPanel Grid.Row="2" Margin="12,8,12,10" Spacing="6">
+            <TextBlock Text="{loc:Loc Arc.CanvasHint}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsRadialArcStep}" />
+            <TextBlock Text="{loc:Loc Clock.Legend}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsClockStep}" />
+            <TextBlock Text="{Binding SelectionDescription, ElementName=PhotoCanvas}" Classes="micro" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding RingOperationHint}" Classes="micro" TextWrapping="Wrap"
+                       IsVisible="{Binding IsRingStep}" />
+          </StackPanel>
         </Grid>
       </Border>
 
-      <ScrollViewer Grid.Column="1" Width="300" Margin="16,0,0,0">
-        <StackPanel Spacing="16">
+      <!-- 三步引导列。 -->
+      <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="10">
 
-          <controls:SectionCard Header="标靶" Icon="{StaticResource IconCrosshair}">
-            <StackPanel Spacing="10">
-              <ComboBox ItemsSource="{Binding StageChoices}" SelectedItem="{Binding Stage}"
-                        HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}" />
-              <TextBlock Classes="micro" Text="{Binding TargetSummary}" TextWrapping="Wrap" />
+          <!-- 1. 造标靶盘 -->
+          <Expander IsExpanded="{Binding StepOneExpanded, Mode=TwoWay}">
+            <Expander.Header>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Classes="primary" Content="生成" Height="{StaticResource CompactHeight}"
-                        Command="{Binding GenerateTargetCommand}" />
-                <Button Classes="ghost" Content="保存 PNG" Height="{StaticResource CompactHeight}"
-                        Padding="12,0" Background="{DynamicResource Surface2Brush}"
-                        Command="{Binding SaveTargetPngCommand}" />
+                <TextBlock Text="1" FontWeight="SemiBold" />
+                <TextBlock Text="{loc:Loc Xaml.CreateCalibrationDisc}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding StepOneState}" Classes="micro" VerticalAlignment="Center" />
               </StackPanel>
-              <Border Background="{DynamicResource DiscCanvasBackdropBrush}" CornerRadius="6"
-                      Padding="6" IsVisible="{Binding TargetPreview, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-                <Image Source="{Binding TargetPreview}" Width="248" Height="248" Stretch="Uniform" />
-              </Border>
-              <TextBlock Classes="micro" TextWrapping="Wrap"
-                         Text="生成后保存 PNG，按现有导出/刻录流程刻到盘上；拍好照片再回到下面标注。" />
-              <Button Classes="ghost" Content="导出到设计页" HorizontalAlignment="Stretch"
-                      Height="{StaticResource CompactHeight}" Padding="12,0"
-                      Background="{DynamicResource Surface2Brush}"
-                      Command="{Binding ExportTargetToDesignCommand}" />
+            </Expander.Header>
+            <StackPanel Spacing="6" IsEnabled="{Binding !IsBusy}">
+              <TextBlock Text="{loc:Loc Xaml.DiscType}" Classes="muted" />
+              <ComboBox ItemsSource="{Binding DiscTypeChoices}" SelectedItem="{Binding SelectedDiscType, Mode=TwoWay}" />
+              <ComboBox ItemsSource="{Binding Parameters.CdPresets}" SelectedItem="{Binding Parameters.SelectedCdPreset, Mode=TwoWay}"
+                        IsVisible="{Binding IsCdSetup}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+              <ComboBox ItemsSource="{Binding Parameters.DvdPresets}" SelectedItem="{Binding Parameters.SelectedDvdPreset, Mode=TwoWay}"
+                        IsVisible="{Binding IsDvdSetup}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+              <ComboBox ItemsSource="{Binding Parameters.BluRayPresets}" SelectedItem="{Binding Parameters.SelectedBluRayPreset, Mode=TwoWay}"
+                        IsVisible="{Binding IsBluRaySetup}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+
+              <Grid ColumnDefinitions="*,8,*" RowDefinitions="Auto,Auto">
+                <TextBlock Text="{loc:Loc Xaml.InnerRadiusMm}" Classes="muted" />
+                <TextBlock Grid.Column="2" Text="{loc:Loc Xaml.OuterRadiusMm}" Classes="muted" />
+                <TextBox Grid.Row="1" Text="{Binding Parameters.CdInnerRadius}" IsVisible="{Binding IsCdSetup}" />
+                <TextBox Grid.Row="1" Text="{Binding Parameters.DvdInnerRadius}" IsVisible="{Binding IsDvdSetup}" />
+                <TextBox Grid.Row="1" Text="{Binding Parameters.BdInnerRadius}" IsVisible="{Binding IsBluRaySetup}" />
+                <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Parameters.CdOuterRadius}" IsVisible="{Binding IsCdSetup}" />
+                <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Parameters.DvdOuterRadius}" IsVisible="{Binding IsDvdSetup}" />
+                <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding Parameters.BdOuterRadius}" IsVisible="{Binding IsBluRaySetup}" />
+              </Grid>
+
+              <TextBlock Text="{loc:Loc Xaml.GeometryTotalSectors}" Classes="muted" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding Parameters.CdSectors}" IsVisible="{Binding IsCdSetup}" />
+                <TextBox Text="{Binding Parameters.DvdTotalSectors}" IsVisible="{Binding IsDvdSetup}" />
+                <TextBox Text="{Binding Parameters.BdTotalSectors}" IsVisible="{Binding IsBluRaySetup}" />
+                <Button Grid.Column="1" Classes="ghost" Margin="6,0,0,0" Height="28" Padding="10,0"
+                        Content="{loc:Loc CalibrationMedia.ReadButton}" Command="{Binding ReadDiscSectorsCommand}"
+                        ToolTip.Tip="{loc:Loc CalibrationMedia.ReadHint}" />
+              </Grid>
+
+              <TextBlock Text="{loc:Loc Xaml.UsableSectors}" Classes="muted" />
+              <TextBox Text="{Binding Parameters.CdUsableSectors}" IsVisible="{Binding IsCdSetup}" />
+              <TextBox Text="{Binding Parameters.DvdUsableSectors}" IsVisible="{Binding IsDvdSetup}" />
+              <TextBox Text="{Binding Parameters.BdUsableSectors}" IsVisible="{Binding IsBluRaySetup}" />
+              <ComboBox ItemsSource="{Binding CapacityRecorders}" SelectedItem="{Binding SelectedCapacityRecorder, Mode=TwoWay}"
+                        IsVisible="{Binding HasRecorderChoice}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+              <TextBlock Text="{Binding CapacityStatus}" Classes="micro" TextWrapping="Wrap" />
+
+              <Expander Header="{loc:Loc CalibrationMedia.Encoding}">
+                <StackPanel Spacing="4">
+                  <CheckBox Content="{loc:Loc CalibrationMedia.CdInterleave}" IsChecked="{Binding Parameters.CdInterleave}"
+                            IsVisible="{Binding IsCdSetup}" />
+                  <CheckBox Content="{loc:Loc Xaml.Invert3T6TMapping}" IsChecked="{Binding Parameters.BdInvertMapping}"
+                            IsVisible="{Binding IsBluRaySetup}" />
+                  <TextBlock Text="{loc:Loc Xaml.LinearTerm}" Classes="muted" />
+                  <TextBox Text="{Binding SetupPitchLinear}" />
+                  <TextBlock Text="{loc:Loc Xaml.QuadraticTerm}" Classes="muted" />
+                  <TextBox Text="{Binding SetupPitchQuadratic}" />
+                  <TextBlock Text="{loc:Loc Xaml.CubicTerm}" Classes="muted" />
+                  <TextBox Text="{Binding SetupPitchCubic}" />
+                </StackPanel>
+              </Expander>
+
+              <TextBlock Text="{Binding CoarseSetupHint}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsCoarseMode}" />
+
+              <Button Classes="primary" HorizontalAlignment="Stretch" Content="{Binding CreateTargetLabel}"
+                      Command="{Binding CreateTargetCommand}" />
+              <TextBlock Text="{Binding TargetSummary}" Classes="micro" TextWrapping="Wrap" />
+              <TextBlock Text="{loc:Loc Stages.NewTargetHint}" Classes="micro" TextWrapping="Wrap"
+                         IsVisible="{Binding NeedsStageTarget}" />
+
+              <TextBlock Text="{loc:Loc Xaml.Burn}" Classes="muted" Margin="0,8,0,0" />
+              <Button Classes="ghost" HorizontalAlignment="Left" Content="{loc:Loc Xaml.OpenStreamingBurn}"
+                      Command="{Binding StreamBurnCommand}" ToolTip.Tip="{loc:Loc Xaml.OpenBurnToSelectARecorderAndConfirmWriting}" />
+
+              <TextBlock Text="{loc:Loc Xaml.ExternalBurning}" Classes="muted" Margin="0,8,0,0" />
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding OutputPath}" PlaceholderText="{loc:Loc Xaml.GenerateAnImageOrAudioTrackForExternalBurning}" />
+                <Button Grid.Column="1" Classes="ghost" Margin="6,0,0,0" Height="28" Padding="10,0"
+                        Content="{loc:Loc Xaml.ChooseLocation}" Command="{Binding BrowseOutputCommand}" />
+              </Grid>
+              <WrapPanel>
+                <Button Classes="ghost" Content="{loc:Loc Xaml.GenerateImageTrack}" Command="{Binding GenerateImageCommand}"
+                        Margin="0,0,8,0" />
+                <Button Classes="ghost" Content="{loc:Loc Xaml.ExportPatternPNG}" Command="{Binding ExportPngCommand}" />
+              </WrapPanel>
+
+              <Expander Header="{loc:Loc Xaml.CalibrationSessionAdvanced}">
+                <WrapPanel>
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.SaveCalibrationSession}" Command="{Binding SaveSessionCommand}"
+                          Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.OpenCalibrationSession}" Command="{Binding OpenSessionCommand}" />
+                </WrapPanel>
+              </Expander>
             </StackPanel>
-          </controls:SectionCard>
+          </Expander>
 
-          <controls:SectionCard Header="照片矫正" Icon="{StaticResource IconImage}">
-            <StackPanel Spacing="10">
-              <TextBlock Classes="micro" TextWrapping="Wrap"
-                         Text="按盘外缘（60 mm）和中心孔（7.5 mm）联合拟合透视，把照片拉回正投影。" />
-              <Button Classes="primary" Content="矫正" HorizontalAlignment="Stretch"
-                      Command="{Binding RectifyCommand}" IsEnabled="{Binding HasPhoto}" />
-              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding RectifyStatus}" />
-              <Border Background="{DynamicResource DiscCanvasBackdropBrush}" CornerRadius="6" Padding="6"
-                      IsVisible="{Binding RectifiedImage, Converter={x:Static conv:ObjectConverters.IsNotNull}}">
-                <Image Source="{Binding RectifiedImage}" Width="248" Height="248" Stretch="Uniform" />
-              </Border>
+          <!-- 2. 矫正照片 -->
+          <Expander IsExpanded="{Binding StepTwoExpanded, Mode=TwoWay}">
+            <Expander.Header>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="2" FontWeight="SemiBold" />
+                <TextBlock Text="{loc:Loc Xaml.RectifyPhoto}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding StepTwoState}" Classes="micro" VerticalAlignment="Center" />
+              </StackPanel>
+            </Expander.Header>
+            <StackPanel Spacing="6">
+              <TextBlock Text="{loc:Loc Xaml.PhotoCalibrationFeatures}" Classes="micro" TextWrapping="Wrap" />
+              <Button Classes="primary" HorizontalAlignment="Stretch" Content="{loc:Loc Xaml.ImportDiscPhoto}"
+                      Command="{Binding ImportPhotoCommand}" />
+              <Grid ColumnDefinitions="Auto,*">
+                <TextBlock Text="{loc:Loc Xaml.DiscSize}" Classes="micro" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding PhysicalDiscSizeChoices}"
+                          SelectedItem="{Binding SelectedPhysicalDiscSize, Mode=TwoWay}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+              </Grid>
+              <Button Classes="ghost" HorizontalAlignment="Stretch" Content="{loc:Loc Xaml.CalculateRectification}"
+                      Command="{Binding RectifyPhotoCommand}" />
+              <Button Classes="primary" HorizontalAlignment="Stretch" Content="{loc:Loc Xaml.ConfirmRectifiedPhoto}"
+                      Command="{Binding ConfirmRectificationCommand}" IsEnabled="{Binding IsRectificationReady}" />
+              <TextBlock Text="{Binding RectificationSummary}" Classes="micro" TextWrapping="Wrap" />
             </StackPanel>
-          </controls:SectionCard>
+          </Expander>
 
-          <controls:SectionCard Header="标注" Icon="{StaticResource IconCrosshair}">
-            <StackPanel Spacing="10">
-              <CheckBox Content="在照片上拖动轮廓控制点" IsChecked="{Binding EditContours}" />
-              <TextBlock Classes="micro" TextWrapping="Wrap"
-                         Text="上面的轮廓点可以直接拖到盘缘和孔缘上，拖完再点一次“矫正”。取消勾选则回到简化标注：依次标盘外缘、数据区内缘、数据区外缘各三点以上来量半径。" />
+          <!-- 3. 量环 / 描线 / 弧长 / 时钟 -->
+          <Expander IsExpanded="{Binding StepThreeExpanded, Mode=TwoWay}">
+            <Expander.Header>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="3" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding StepThreeTitle}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding StepThreeState}" Classes="micro" VerticalAlignment="Center" />
+              </StackPanel>
+            </Expander.Header>
+            <StackPanel Spacing="6">
+              <Button Classes="ghost" HorizontalAlignment="Stretch" Content="{loc:Loc Xaml.BackToPhotoCorrection}"
+                      Command="{Binding BackToPhotoCommand}" />
 
-              <StackPanel Orientation="Horizontal" Spacing="6">
-                <RadioButton GroupName="edge" Content="盘外缘" IsChecked="{Binding IsDiscEdge, Mode=TwoWay}" />
-                <RadioButton GroupName="edge" Content="内缘" IsChecked="{Binding IsInnerEdge, Mode=TwoWay}" />
-                <RadioButton GroupName="edge" Content="外缘" IsChecked="{Binding IsOuterEdge, Mode=TwoWay}" />
+              <StackPanel Spacing="6" IsVisible="{Binding IsRadialArcStep}">
+                <TextBlock Text="{loc:Loc Arc.Instructions}" Classes="micro" TextWrapping="Wrap" />
+                <TextBlock Text="{loc:Loc Arc.Segment}" Classes="muted" />
+                <ComboBox ItemsSource="{Binding ArcBandNames}"
+                          SelectedIndex="{Binding SelectedArcBand, Mode=TwoWay}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+                <TextBlock Text="{loc:Loc Arc.Direction}" Classes="muted" />
+                <ComboBox ItemsSource="{Binding ArcDirections}"
+                          SelectedIndex="{Binding SelectedArcDirectionIndex, Mode=TwoWay}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+                <Button Classes="ghost" HorizontalAlignment="Left" Content="{loc:Loc Xaml.CoarseRingUndoPoint}"
+                        Command="{Binding UndoArcLengthPointCommand}" />
+                <TextBlock Text="{Binding ArcMeasurementSummary}" Classes="micro" TextWrapping="Wrap" />
+                <CheckBox Content="{loc:Loc Arc.Confirm}" IsChecked="{Binding ArcComplete, Mode=TwoWay}"
+                          IsEnabled="{Binding CanConfirmArc}" />
+                <Button Classes="primary" Content="{loc:Loc Arc.Solve}" Command="{Binding SolveArcLengthsCommand}" />
+                <TextBlock Text="{Binding ArcFitSummary}" Classes="micro" TextWrapping="Wrap" />
+                <Button Classes="ghost" Content="{loc:Loc CalibrationMedia.ApplyRadii}" Command="{Binding ApplyArcLengthsCommand}" />
               </StackPanel>
 
-              <TextBlock Classes="micro" Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+              <StackPanel Spacing="6" IsVisible="{Binding IsClockStep}">
+                <TextBlock Text="{loc:Loc Clock.Aim}" Classes="micro" TextWrapping="Wrap" />
+                <WrapPanel>
+                  <Button Classes="primary" Content="{loc:Loc Clock.Read}" Command="{Binding ReadClockCommand}" Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.CancelCalculation}" Command="{Binding CancelCommand}" />
+                </WrapPanel>
+                <TextBlock Text="{Binding ClockReadSummary}" Classes="micro" TextWrapping="Wrap" />
+                <Button Classes="ghost" Content="{loc:Loc Xaml.UseVerifiedRadii}" Command="{Binding ApplyClockCommand}" />
+              </StackPanel>
 
-              <Button Classes="primary" Content="测量" HorizontalAlignment="Stretch"
-                      Command="{Binding MeasureCommand}" IsEnabled="{Binding HasPhoto}" />
+              <StackPanel Spacing="6" IsVisible="{Binding IsRingStep}">
+                <TextBlock Text="{Binding RingBoundaryInstructions}" Classes="micro" TextWrapping="Wrap"
+                           IsVisible="{Binding HasWideBandTarget}" />
+                <CheckBox Content="{loc:Loc Xaml.CoarseRingThreePoints}" IsChecked="{Binding ThreePointMode, Mode=TwoWay}"
+                          IsVisible="{Binding !HasWideBandTarget}" />
+                <TextBlock Text="{Binding RingOperationHint}" Classes="micro" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding BandRaySummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsBandRayMode}" />
+                <TextBlock Text="{Binding RingPointSummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding ThreePointMode}" />
+                <TextBlock Text="{Binding CoarseSummary}" Classes="micro" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding BandIntervalSummary}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding HasWideBandTarget}" />
+                <Button Classes="primary" Content="{Binding RingSolveLabel}" Command="{Binding SolveRingsCommand}" />
+                <Button Classes="ghost" Content="{loc:Loc CalibrationMedia.ApplyRadii}" Command="{Binding ApplyCoarseParametersCommand}" />
+                <StackPanel Spacing="4" IsVisible="{Binding CanVerifySectorScale}">
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.VerifySectorScale}" Command="{Binding VerifySectorScaleCommand}" />
+                  <TextBlock Text="{Binding SectorCheckSummary}" Classes="micro" TextWrapping="Wrap" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.UseVerifiedRadii}" Command="{Binding ApplyVerifiedScaleCommand}" />
+                </StackPanel>
+              </StackPanel>
+
+              <TextBlock Text="{loc:Loc Arc.FineHint}" Classes="micro" TextWrapping="Wrap"
+                         IsVisible="{Binding HasRadialArcTarget}" />
+              <TextBlock Text="{loc:Loc WideBands.FineHint}" Classes="micro" TextWrapping="Wrap"
+                         IsVisible="{Binding HasWideBandTarget}" />
+              <TextBlock Text="{loc:Loc Clock.FineHint}" Classes="micro" TextWrapping="Wrap"
+                         IsVisible="{Binding HasClockTarget}" />
+
+              <StackPanel Spacing="6" IsVisible="{Binding IsLineFitStep}">
+                <TextBlock Text="{Binding FineInitialSummary}" Classes="micro" TextWrapping="Wrap" />
+                <Button Classes="ghost" Content="{loc:Loc Xaml.UseMeasuredRingSeed}" Command="{Binding UseRingSeedCommand}"
+                        IsVisible="{Binding HasAvailableRingSeed}" />
+                <Button Classes="ghost" Content="{loc:Loc Xaml.RestoreFineInitial}" Command="{Binding ClearRingSeedCommand}"
+                        IsVisible="{Binding HasAcceptedRingSeed}" />
+                <TextBlock Text="{Binding TraceMarkingHint}" Classes="micro" TextWrapping="Wrap" />
+                <CheckBox Content="{loc:Loc Xaml.FitCubicDVDTrackPitch}" IsChecked="{Binding FitDvdPitch, Mode=TwoWay}"
+                          IsVisible="{Binding CanFitDvdPitch}" />
+                <Expander Header="{Binding SearchRangeHeader}">
+                  <ComboBox ItemsSource="{Binding ActiveSearchRangeChoices}"
+                            SelectedItem="{Binding SelectedCoarseSearchRange, Mode=TwoWay}"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+                </Expander>
+                <WrapPanel>
+                  <Button Classes="primary" Content="{loc:Loc Xaml.SolveParameters}" Command="{Binding SolveCommand}" Margin="0,0,8,0" />
+                  <Button Classes="ghost" Content="{loc:Loc Xaml.CancelCalculation}" Command="{Binding CancelCommand}" />
+                </WrapPanel>
+                <ComboBox ItemsSource="{Binding CoarseCandidates}" SelectedItem="{Binding SelectedCoarseCandidate, Mode=TwoWay}" MaxDropDownHeight="180"><ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Label}" /></DataTemplate></ComboBox.ItemTemplate></ComboBox>
+                <TextBlock Text="{Binding FitAssessment}" Classes="micro" TextWrapping="Wrap" />
+                <CheckBox Content="{Binding TraceConfirmationLabel}" IsChecked="{Binding ContourConfirmed, Mode=TwoWay}" />
+                <Button Classes="primary" HorizontalAlignment="Stretch" Content="{Binding ApplyTraceLabel}"
+                        Command="{Binding ApplyParametersCommand}" ToolTip.Tip="{Binding ApplyParametersHint}" />
+              </StackPanel>
             </StackPanel>
-          </controls:SectionCard>
-
-          <controls:SectionCard Header="结果" Icon="{StaticResource IconImage}" IsVisible="{Binding HasResult}">
-            <StackPanel Spacing="10">
-              <TextBlock Classes="micro" TextWrapping="Wrap" Text="{Binding ResultSummary}" />
-              <Button Classes="primary" Content="应用到工程" HorizontalAlignment="Stretch"
-                      Command="{Binding ApplyCommand}" />
-            </StackPanel>
-          </controls:SectionCard>
-
-          <controls:SectionCard Header="说明" Icon="{StaticResource IconInfo}">
-            <TextBlock Classes="micro" TextWrapping="Wrap"
-                       Text="这是简化标定：只量半径，不改轨距多项式。完整流程（靶标刻度、弧长拟合）还在搬，先用这个把内外半径校准下来。" />
-          </controls:SectionCard>
+          </Expander>
 
         </StackPanel>
       </ScrollViewer>

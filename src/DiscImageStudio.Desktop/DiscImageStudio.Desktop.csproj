@@ -55,6 +55,7 @@
     <Compile Include="..\DiscImageStudio.App\Services\ParameterNumberText.cs" Link="Services\Shared\ParameterNumberText.cs" />
     <Compile Include="..\DiscImageStudio.App\Services\DvdPitchDisplay.cs" Link="Services\Shared\DvdPitchDisplay.cs" />
     <Compile Include="..\DiscImageStudio.App\Services\RecentProjectStore.cs" Link="Services\Shared\RecentProjectStore.cs" />
+    <Compile Include="..\DiscImageStudio.App\Services\JobDiagnostics.cs" Link="Services\Shared\JobDiagnostics.cs" />
     <EmbeddedResource Include="..\DiscImageStudio.App\Localization\Catalogs\*.json"
                       LogicalName="DiscImageStudio.Localization.Catalogs.%(Filename)%(Extension)" />
   </ItemGroup>

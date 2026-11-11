@@ -35,6 +35,8 @@ public partial class BurnPageViewModel : ObservableObject
 
     public DiscParametersState State => _shell.State;
 
+    internal IDiscBurner Burner => _burner;
+
     public string BackendName => _burner.BackendName;
 
     public string FamilyLabel => _shell.CurrentProject?.FamilyLabel ?? "CD";
