@@ -114,13 +114,15 @@
                        IsVisible="{Binding NeedsStageTarget}" />
           </Panel>
 
-          <StackPanel Grid.Row="2" Margin="12,8,12,10" Spacing="6">
-            <TextBlock Text="{loc:Loc Arc.CanvasHint}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsRadialArcStep}" />
-            <TextBlock Text="{loc:Loc Clock.Legend}" Classes="micro" TextWrapping="Wrap" IsVisible="{Binding IsClockStep}" />
-            <TextBlock Text="{Binding SelectionDescription, ElementName=PhotoCanvas}" Classes="micro" TextWrapping="Wrap" />
+          <!-- 固定高度：这行文字随操作变化，若让它撑高，画布每点一下就重新适配尺寸，图案会跟着跳。 -->
+          <Grid Grid.Row="2" Height="64" Margin="12,8,12,10">
+            <TextBlock Text="{Binding SelectionDescription, ElementName=PhotoCanvas}" Classes="micro"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxLines="2"
+                       VerticalAlignment="Top" />
             <TextBlock Text="{Binding RingOperationHint}" Classes="micro" TextWrapping="Wrap"
+                       TextTrimming="CharacterEllipsis" MaxLines="2" VerticalAlignment="Bottom"
                        IsVisible="{Binding IsRingStep}" />
-          </StackPanel>
+          </Grid>
         </Grid>
       </Border>
 
