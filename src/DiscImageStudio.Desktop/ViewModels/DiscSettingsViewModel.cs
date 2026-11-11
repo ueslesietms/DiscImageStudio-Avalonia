@@ -136,9 +136,16 @@ public partial class DiscSettingsViewModel : ObservableObject
                 return;
             }
 
-            Sectors = media.TotalSectors.ToString(CultureInfo.InvariantCulture);
-            UsableSectors = string.Empty;
-            PresetMessage = L.F($"已从 {device.Id} 读取：{media.Description}，{media.TotalSectors:N0} 扇区。");
+            long total = media.TotalSectors;
+            Sectors = total.ToString(CultureInfo.InvariantCulture);
+            // CD 的 ATIP lead-out 之后还要给 lead-out 本身留位置，内置预设也是「总数 - 2」；
+            // DVD / BD 没有这个扣减，留空表示跟随总数。
+            UsableSectors = _family == OpticalDiscFamily.CompactDisc && total > 2
+                ? (total - 2).ToString(CultureInfo.InvariantCulture)
+                : string.Empty;
+            PresetMessage = UsableSectors.Length > 0
+                ? L.F($"已从 {device.Id} 读取：{media.Description}，总共 {total:N0} 扇区，可用 {total - 2:N0}。")
+                : L.F($"已从 {device.Id} 读取：{media.Description}，总共 {total:N0} 扇区。");
         }
         catch (Exception exception)
         {
