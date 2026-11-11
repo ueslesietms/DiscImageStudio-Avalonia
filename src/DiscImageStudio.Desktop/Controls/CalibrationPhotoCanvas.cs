@@ -181,6 +181,7 @@ public sealed class CalibrationPhotoCanvas : Control
     private CalibrationTracePoint? _traceDrag;
     private CalibrationRingArc? _ringDrag;
     private double _ringDragRadius;
+    private double _ringDragStartRadius;
     private int? _selectedRing;
     private Point _dragStart;
     private Point _dragOriginal;
@@ -349,32 +350,10 @@ public sealed class CalibrationPhotoCanvas : Control
             {
                 _ringDrag = ring;
                 _ringDragRadius = ring.RadiusMm;
-                _dragStart = WorldToView(new Point());
+                _ringDragStartRadius = Len(ViewToWorld(screen));
                 _hasMoved = false;
                 _selectedRing = ring.RingIndex;
                 UpdateRingDescription(ring.RingIndex, ring.RadiusMm);
-                InvalidateVisual();
-                return true;
-            }
-        }
-
-        if (CanEditRings && !ThreePointMode && RingArcs is not null)
-        {
-            CalibrationRingArc? closest = null;
-            double best = 64;
-            foreach (CalibrationRingArc arc in RingArcs)
-            {
-                double distance = Dist(WorldToView(OnRingWorld(arc.RadiusMm)), screen);
-                if (distance < best) { best = distance; closest = arc; }
-            }
-
-            if (closest is not null && best <= 8)
-            {
-                _ringDrag = closest;
-                _ringDragRadius = closest.RadiusMm;
-                _selectedRing = closest.RingIndex;
-                _dragStart = screen;
-                _hasMoved = false;
                 InvalidateVisual();
                 return true;
             }
@@ -429,14 +408,12 @@ public sealed class CalibrationPhotoCanvas : Control
         return false;
     }
 
-    private Point OnRingWorld(double radius) => new(radius, 0);
-
     public void DragTo(Point screen)
     {
         if (!Dragging) return;
         if (_ringDrag is { } ring)
         {
-            double delta = Len(ViewToWorld(screen)) - Len(ViewToWorld(_dragStart));
+            double delta = Len(ViewToWorld(screen)) - _ringDragStartRadius;
             _ringDragRadius = Math.Clamp(ring.RadiusMm + delta, 7.5, PhysicalRadiusMm);
             UpdateRingDescription(ring.RingIndex, _ringDragRadius);
             InvalidateVisual();
@@ -690,6 +667,26 @@ public sealed class CalibrationPhotoCanvas : Control
     private void DrawMeasuredPoints(DrawingContext context)
     {
         if (RingPointMarkers is not { Count: > 0 } points) return;
+        if (points.Count == 3)
+        {
+            // 三个点落在同一条宽带交界上：把经过它们的圆弧画出来，用户才知道自己量的是哪一圈。
+            // 去掉最大夹角，剩下那段就是弧；跨越 -π/π 也能处理。
+            double[] angles = points.Select(p => Math.Atan2(p.Y, p.X)).Order().ToArray();
+            double start = angles[0], sweep = angles[^1] - start, largestGap = 2 * Math.PI - sweep;
+            for (int i = 1; i < angles.Length; i++)
+            {
+                double gap = angles[i] - angles[i - 1];
+                if (gap <= largestGap) continue;
+                largestGap = gap;
+                start = angles[i];
+                sweep = 2 * Math.PI - gap;
+            }
+
+            const double pad = Math.PI / 36;
+            double radius = points.Average(p => Math.Sqrt(p.X * p.X + p.Y * p.Y));
+            DrawRingSegment(context, radius, start - pad, sweep + 2 * pad, new Pen(TraceBrush, 1.6));
+        }
+
         for (int i = 0; i < points.Count; i++)
         {
             Point position = WorldToView(new Point(points[i].X, points[i].Y));
@@ -889,22 +886,24 @@ public sealed class CalibrationPhotoCanvas : Control
             UpdateTraceDescription();
         }
         else if (change.Property == BoundaryPointsProperty || change.Property == RingArcsProperty
-            || change.Property == TracePointsProperty || change.Property == IsPhotoStepProperty
-            || change.Property == IsCoarseModeProperty || change.Property == ThreePointModeProperty
-            || change.Property == HasClockTargetProperty || change.Property == HasRadialArcTargetProperty
-            || change.Property == HasWideBandTargetProperty || change.Property == IsBandRayModeProperty
-            || change.Property == IsBoundarySegmentModeProperty)
+            || change.Property == TracePointsProperty)
         {
+            // 数据更新只作废旧的选中项，视图保持用户当前的缩放和平移。
             _selectedTrace = null;
             _traceContinuation = null;
             _traceHover = null;
-            if (change.Property != IsCoarseModeProperty && change.Property != ThreePointModeProperty
-                && change.Property != HasClockTargetProperty && change.Property != HasRadialArcTargetProperty
-                && change.Property != HasWideBandTargetProperty && change.Property != IsBandRayModeProperty
-                && change.Property != IsBoundarySegmentModeProperty)
-            {
-                ResetView();
-            }
+        }
+        else if (change.Property == IsPhotoStepProperty || change.Property == IsRectificationPreviewProperty
+            || change.Property == IsTargetPreviewProperty || change.Property == CanvasRadiusMmProperty
+            || change.Property == HasRadialArcTargetProperty || change.Property == HasWideBandTargetProperty
+            || change.Property == HasClockTargetProperty)
+        {
+            // 换了一张图/换了一个标靶才有必要回到适应窗口。
+            CompleteDrag(false);
+            _selectedTrace = null;
+            _traceContinuation = null;
+            _traceHover = null;
+            ResetView();
         }
     }
 }
