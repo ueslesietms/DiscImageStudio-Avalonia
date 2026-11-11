@@ -1,74 +1,31 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
-        xmlns:controls="using:DiscImageStudio.Desktop.Controls"
         xmlns:conv="using:Avalonia.Data.Converters"
-        xmlns:svc="using:DiscImageStudio.Desktop.Services"
         x:Class="DiscImageStudio.Desktop.Views.ProjectSettingsWindow"
         x:DataType="vm:ProjectSettingsViewModel"
         Title="工程设置"
-        Width="540" Height="780"
+        Width="460" Height="320"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
         Background="{DynamicResource BackgroundBrush}"
         FontFamily="{StaticResource AppFontFamily}">
   <Grid RowDefinitions="*,Auto" Margin="20">
 
-    <ScrollViewer>
-      <StackPanel Spacing="16">
-        <TextBlock Classes="title" FontSize="18" Text="工程设置" />
-        <TextBlock Classes="micro" TextWrapping="Wrap"
-                   Text="几何参数决定图案画在盘面的哪一段。改了之后设计页的内容环和导出都会跟着变。" />
+    <StackPanel Spacing="16">
+      <TextBlock Classes="title" FontSize="18" Text="工程设置" />
+      <TextBlock Classes="micro" TextWrapping="Wrap"
+                 Text="工程层面的信息。盘片几何、三项轨距和预设请打开「盘片设置」。" />
 
-        <StackPanel Spacing="6">
-          <TextBlock Classes="micro" Text="工程名" />
-          <TextBox Text="{Binding Name}" Height="{StaticResource ControlHeight}" />
-          <TextBlock Classes="micro" Text="{Binding FamilyLabel}" />
-        </StackPanel>
-
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-          <StackPanel Spacing="6">
-            <TextBlock Classes="micro" Text="内半径 (mm)" />
-            <TextBox Text="{Binding InnerRadius}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-          <StackPanel Grid.Column="1" Spacing="6">
-            <TextBlock Classes="micro" Text="外半径 (mm)" />
-            <TextBox Text="{Binding OuterRadius}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-        </Grid>
-
-        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-          <StackPanel Spacing="6">
-            <TextBlock Classes="micro" Text="总扇区数" />
-            <TextBox Text="{Binding Sectors}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-          <StackPanel Grid.Column="1" Spacing="6">
-            <TextBlock Classes="micro" Text="可用扇区（空＝跟随总数）" />
-            <TextBox Text="{Binding UsableSectors}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-        </Grid>
-
-        <TextBlock Classes="micro" Text="轨距多项式（相对项，0 表示等距）" Margin="0,6,0,0" />
-        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
-          <StackPanel Spacing="6">
-            <TextBlock Classes="micro" Text="一次项" />
-            <TextBox Text="{Binding PitchLinear}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-          <StackPanel Grid.Column="1" Spacing="6">
-            <TextBlock Classes="micro" Text="二次项" />
-            <TextBox Text="{Binding PitchQuadratic}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-          <StackPanel Grid.Column="2" Spacing="6">
-            <TextBlock Classes="micro" Text="三次项" />
-            <TextBox Text="{Binding PitchCubic}" Height="{StaticResource ControlHeight}" />
-          </StackPanel>
-        </Grid>
-
-        <TextBlock Classes="micro" Foreground="{DynamicResource DangerBrush}"
-                   TextWrapping="Wrap" Text="{Binding ErrorMessage}"
-                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+      <StackPanel Spacing="6">
+        <TextBlock Classes="micro" Text="工程名" />
+        <TextBox Text="{Binding Name}" Height="{StaticResource ControlHeight}" />
       </StackPanel>
-    </ScrollViewer>
+
+      <TextBlock Classes="micro" Foreground="{DynamicResource DangerBrush}"
+                 Text="{Binding ErrorMessage}"
+                 IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+    </StackPanel>
 
     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,16,0,0">
       <Button Classes="ghost" Content="取消" Height="{StaticResource ButtonHeight}" Padding="16,0"

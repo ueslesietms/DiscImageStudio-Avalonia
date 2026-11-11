@@ -213,6 +213,30 @@ public partial class ShellViewModel : ObservableObject
     [RelayCommand]
     private Task SaveProject() => SaveProjectAsync();
 
+    /// <summary>工程设置里改名：同步标题和工程文档。</summary>
+    public void RenameProject(string name)
+    {
+        if (CurrentProject is { } current)
+        {
+            CurrentProject = current with { Name = name };
+            ProjectTitle = name;
+            OnPropertyChanged(nameof(ProjectTitleDisplay));
+            MarkDirty();
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenProjectSettingsAsync()
+    {
+        if (Dialogs is not { } dialogs || CurrentProject is not { } project)
+        {
+            return;
+        }
+
+        ProjectSettingsViewModel settings = new(project.Name, RenameProject);
+        await dialogs.ShowProjectSettingsAsync(settings);
+    }
+
     private void RecordRecent(ProjectDocument document, string path)
     {
         RecentProjectEntry entry = new(

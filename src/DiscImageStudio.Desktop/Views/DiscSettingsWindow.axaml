@@ -1,0 +1,103 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+        xmlns:svc="using:DiscImageStudio.Desktop.Services"
+        xmlns:conv="using:Avalonia.Data.Converters"
+        x:Class="DiscImageStudio.Desktop.Views.DiscSettingsWindow"
+        x:DataType="vm:DiscSettingsViewModel"
+        Title="盘片设置"
+        Width="560" Height="780"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="{StaticResource AppFontFamily}">
+  <Grid RowDefinitions="*,Auto" Margin="20">
+
+    <ScrollViewer>
+      <StackPanel Spacing="16">
+        <TextBlock Classes="title" FontSize="18" Text="盘片设置" />
+        <TextBlock Classes="micro" TextWrapping="Wrap"
+                   Text="几何参数决定图案画在盘面的哪一段。三项轨距多项式全为零表示等距螺旋；标定出的实测值就填在这里。" />
+        <TextBlock Classes="micro" Text="{Binding FamilyLabel}" />
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="micro" Text="盘片预设" />
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <ComboBox ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}"
+                      HorizontalAlignment="Stretch" Height="{StaticResource ControlHeight}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="svc:DiscPresetItem">
+                  <TextBlock Text="{Binding DisplayName}" FontSize="13" TextWrapping="NoWrap" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1" Classes="ghost" Content="更新" Height="{StaticResource ControlHeight}"
+                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                    IsEnabled="{Binding CanManagePreset}" Command="{Binding UpdatePresetCommand}" />
+            <Button Grid.Column="2" Classes="ghost" Content="删除" Height="{StaticResource ControlHeight}"
+                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                    IsEnabled="{Binding CanManagePreset}" Command="{Binding DeletePresetCommand}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+            <TextBox Text="{Binding NewPresetName}" PlaceholderText="把当前参数存成新预设，先起个名字"
+                     Height="{StaticResource ControlHeight}" />
+            <Button Grid.Column="1" Classes="ghost" Content="保存为预设" Height="{StaticResource ControlHeight}"
+                    Padding="12,0" Background="{DynamicResource Surface2Brush}"
+                    Command="{Binding SaveAsPresetCommand}" />
+          </Grid>
+          <TextBlock Classes="micro" Foreground="{DynamicResource SuccessBrush}" TextWrapping="Wrap"
+                     Text="{Binding PresetMessage}"
+                     IsVisible="{Binding PresetMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="micro" Text="内半径 (mm)" />
+            <TextBox Text="{Binding InnerRadius}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="6">
+            <TextBlock Classes="micro" Text="外半径 (mm)" />
+            <TextBox Text="{Binding OuterRadius}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="micro" Text="总扇区数" />
+            <TextBox Text="{Binding Sectors}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="6">
+            <TextBlock Classes="micro" Text="可用扇区（空＝跟随总数）" />
+            <TextBox Text="{Binding UsableSectors}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Classes="micro" Text="轨距多项式（相对项，0 表示等距）" Margin="0,6,0,0" />
+        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="micro" Text="一次项" />
+            <TextBox Text="{Binding PitchLinear}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+          <StackPanel Grid.Column="1" Spacing="6">
+            <TextBlock Classes="micro" Text="二次项" />
+            <TextBox Text="{Binding PitchQuadratic}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2" Spacing="6">
+            <TextBlock Classes="micro" Text="三次项" />
+            <TextBox Text="{Binding PitchCubic}" Height="{StaticResource ControlHeight}" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Classes="micro" Foreground="{DynamicResource DangerBrush}"
+                   TextWrapping="Wrap" Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding ErrorMessage, Converter={x:Static conv:StringConverters.IsNotNullOrEmpty}}" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,16,0,0">
+      <Button Classes="ghost" Content="取消" Height="{StaticResource ButtonHeight}" Padding="16,0"
+              Click="Cancel_Click" />
+      <Button Classes="primary" Content="保存" Command="{Binding SaveCommand}" />
+    </StackPanel>
+  </Grid>
+</Window>

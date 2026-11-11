@@ -16,6 +16,8 @@ public interface IDialogService
 
     Task<string?> PickFolderAsync(string title);
 
+    Task ShowDiscSettingsAsync(DiscSettingsViewModel viewModel);
+
     Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel);
 }
 
@@ -69,6 +71,17 @@ public sealed class AvaloniaDialogService : IDialogService
             AllowMultiple = false,
         });
         return folders.Count > 0 ? folders[0].TryGetLocalPath() : null;
+    }
+
+    public async Task ShowDiscSettingsAsync(DiscSettingsViewModel viewModel)
+    {
+        if (_owner is not Window owner)
+        {
+            return;
+        }
+
+        DiscSettingsWindow dialog = new(viewModel);
+        await dialog.ShowDialog(owner);
     }
 
     public async Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel)

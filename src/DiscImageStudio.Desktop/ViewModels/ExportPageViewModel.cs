@@ -474,20 +474,21 @@ public partial class ExportPageViewModel : ObservableObject
     [RelayCommand]
     private void GoDesign() => _shell.NavigateTo(Workspace.Design);
 
+    /// <summary>盘片设置：几何参数 + 三项轨距 + 预设管理，独立窗口。</summary>
     [RelayCommand]
-    private async Task OpenProjectSettingsAsync()
+    private async Task OpenDiscSettingsAsync()
     {
         if (_shell.Dialogs is not { } dialogs || _shell.CurrentProject is not { } project)
         {
             return;
         }
 
-        ProjectSettingsViewModel settings = new(_shell.State, project.Family, project.Name, () =>
+        DiscSettingsViewModel settings = new(_shell.State, project.Family, () =>
         {
             _shell.Design.RefreshGeometry();
             Refresh();
         });
-        await dialogs.ShowProjectSettingsAsync(settings);
+        await dialogs.ShowDiscSettingsAsync(settings);
     }
 
     internal void Refresh()

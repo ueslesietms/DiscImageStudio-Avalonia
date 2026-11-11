@@ -28,7 +28,7 @@
           <controls:SourceChip Text="{Binding SourceSummary}">
             <controls:SourceChip.Actions>
               <Button Classes="ghost" Content="{loc:Loc Xaml.ProjectSettings2}"
-                      Padding="10,0" Command="{Binding OpenProjectSettingsCommand}" />
+                      Padding="10,0" Command="{Binding OpenDiscSettingsCommand}" />
             </controls:SourceChip.Actions>
           </controls:SourceChip>
 
