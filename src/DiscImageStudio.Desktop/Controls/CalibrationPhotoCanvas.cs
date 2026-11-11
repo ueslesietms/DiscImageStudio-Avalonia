@@ -682,22 +682,31 @@ public sealed class CalibrationPhotoCanvas : Control
         if (RingPointMarkers is not { Count: > 0 } points) return;
         if (points.Count == 3)
         {
-            // 三个点落在同一条宽带交界上：把经过它们的圆弧画出来，用户才知道自己量的是哪一圈。
-            // 去掉最大夹角，剩下那段就是弧；跨越 -π/π 也能处理。
-            double[] angles = points.Select(p => Math.Atan2(p.Y, p.X)).Order().ToArray();
-            double start = angles[0], sweep = angles[^1] - start, largestGap = 2 * Math.PI - sweep;
-            for (int i = 1; i < angles.Length; i++)
+            // 三个点自己决定圆弧：画它们的外接圆，而不是按平均半径估一圈。
+            var a = new Point(points[0].X, points[0].Y);
+            var b = new Point(points[1].X, points[1].Y);
+            var c = new Point(points[2].X, points[2].Y);
+            if (CircleThrough(a, b, c) is { } circle)
             {
-                double gap = angles[i] - angles[i - 1];
-                if (gap <= largestGap) continue;
-                largestGap = gap;
-                start = angles[i];
-                sweep = 2 * Math.PI - gap;
-            }
+                Point sa = WorldToView(a), sb = WorldToView(b), sc = WorldToView(c);
+                double pixels = Dist(WorldToView(new Point(circle.Center.X + circle.Radius, circle.Center.Y)),
+                    WorldToView(circle.Center));
+                // 屏幕 Y 向下：叉积为正说明 a→b→c 是顺时针。
+                double cross = (b.X - a.X) * (c.Y - b.Y) - (b.Y - a.Y) * (c.X - b.X);
+                SweepDirection sweep = cross > 0 ? SweepDirection.Clockwise : SweepDirection.CounterClockwise;
+                if (pixels is > 0.5 and < 100000)
+                {
+                    var geometry = new StreamGeometry();
+                    using (StreamGeometryContext path = geometry.Open())
+                    {
+                        path.BeginFigure(sa, false);
+                        path.ArcTo(sb, new Size(pixels, pixels), 0, false, sweep);
+                        path.ArcTo(sc, new Size(pixels, pixels), 0, false, sweep);
+                    }
 
-            const double pad = Math.PI / 36;
-            double radius = points.Average(p => Math.Sqrt(p.X * p.X + p.Y * p.Y));
-            DrawRingSegment(context, radius, start - pad, sweep + 2 * pad, new Pen(TraceBrush, 1.6));
+                    context.DrawGeometry(null, new Pen(TraceBrush, 1.6), geometry);
+                }
+            }
         }
 
         for (int i = 0; i < points.Count; i++)
@@ -828,6 +837,18 @@ public sealed class CalibrationPhotoCanvas : Control
             double viewRadius = Dist(WorldToView(new Point(r, 0)), center);
             context.DrawEllipse(null, pen, center, viewRadius, viewRadius);
         }
+    }
+
+    /// <summary>三点外接圆；三点共线时返回 null。</summary>
+    private static (Point Center, double Radius)? CircleThrough(Point a, Point b, Point c)
+    {
+        double d = 2 * (a.X * (b.Y - c.Y) + b.X * (c.Y - a.Y) + c.X * (a.Y - b.Y));
+        if (Math.Abs(d) < 1e-9) return null;
+        double a2 = a.X * a.X + a.Y * a.Y, b2 = b.X * b.X + b.Y * b.Y, c2 = c.X * c.X + c.Y * c.Y;
+        double ux = (a2 * (b.Y - c.Y) + b2 * (c.Y - a.Y) + c2 * (a.Y - b.Y)) / d;
+        double uy = (a2 * (c.X - b.X) + b2 * (a.X - c.X) + c2 * (b.X - a.X)) / d;
+        var center = new Point(ux, uy);
+        return (center, Dist(center, a));
     }
 
     /// <summary>闭合平滑曲线：用相邻点中点作为端点、原控制点作为二次贝塞尔控制点。</summary>

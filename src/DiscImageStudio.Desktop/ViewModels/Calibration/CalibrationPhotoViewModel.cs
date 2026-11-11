@@ -25,6 +25,12 @@ public partial class CalibrationViewModel
     [ObservableProperty, NotifyPropertyChangedFor(nameof(IsTraceStep))]
     private bool _isPhotoStep = true;
     public bool IsTraceStep => !IsPhotoStep;
+    /// <summary>画布该显示的图：照片步是原图，矫正确认后换成正射图——
+    /// 正射图覆盖 ±画布半径的正方形，和世界坐标（毫米）一一对应，点才不会偏。</summary>
+    public Bitmap? CanvasImage => IsPhotoStep && !PreviewRectification
+        ? PhotoImage
+        : RectifiedPhoto ?? PhotoImage;
+
     [ObservableProperty] private Bitmap? _photoImage;
     private CalibrationRaster? _photoRaster;
     [ObservableProperty] private Bitmap? _rectifiedPhoto;
@@ -96,10 +102,17 @@ public partial class CalibrationViewModel
 
     // A new (or reset) picture always lands in boundary-editing view: the burn-pattern
     // overlay belongs to inspecting the target, not the photo.
-    partial void OnPhotoImageChanged(Bitmap? value) => ShowTargetPreview = false;
+    partial void OnPhotoImageChanged(Bitmap? value)
+    {
+        ShowTargetPreview = false;
+        OnPropertyChanged(nameof(CanvasImage));
+    }
+
+    partial void OnRectifiedPhotoChanged(Bitmap? value) => OnPropertyChanged(nameof(CanvasImage));
 
     partial void OnIsPhotoStepChanged(bool value)
     {
+        OnPropertyChanged(nameof(CanvasImage));
         RefreshCommands();
         ShowTargetPreview = false;
         OnPropertyChanged(nameof(StepTwoState));
@@ -114,7 +127,11 @@ public partial class CalibrationViewModel
         StepTwoExpanded = IsPhotoStep;
         StepThreeExpanded = IsTraceStep;
     }
-    partial void OnPreviewRectificationChanged(bool value) => RefreshPhotoCommands();
+    partial void OnPreviewRectificationChanged(bool value)
+    {
+        RefreshPhotoCommands();
+        OnPropertyChanged(nameof(CanvasImage));
+    }
     partial void OnTracePointsChanged(IReadOnlyList<CalibrationTracePoint> value)
     {
         OnPropertyChanged(nameof(TraceSummary));
