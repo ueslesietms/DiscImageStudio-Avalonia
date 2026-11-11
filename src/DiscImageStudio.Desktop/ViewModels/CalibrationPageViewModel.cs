@@ -598,32 +598,52 @@ public partial class CalibrationPageViewModel : ObservableObject
         }
     }
 
-    /// <summary>把测量出的内外半径写回工程，并让设计页按新参数重排内容环。带二次确认。</summary>
+    /// <summary>把当前标靶渲染成 PNG 并作为图层加到设计页，方便直接排版和后续刻录。带二次确认。</summary>
     [RelayCommand]
-    private async Task FillIntoDesignAsync()
+    private async Task ExportTargetToDesignAsync()
     {
-        if (!HasResult)
-        {
-            StatusMessage = "还没有测量结果，先在上面标点并点“测量”。";
-            return;
-        }
-
         if (_shell.Dialogs is not { } dialogs)
         {
             return;
         }
 
-        string message = string.Create(CultureInfo.InvariantCulture,
-            $"把内半径 {MeasuredInnerRadiusMm:0.###} mm、外半径 {MeasuredOuterRadiusMm:0.###} mm 写进当前工程？\n设计页的内容环会按新参数重排，已有的图层位置和缩放不变。");
-        bool confirmed = await dialogs.ConfirmAsync("填回设计图", message, "填回", "取消");
+        if (_target is null)
+        {
+            await GenerateTargetAsync();
+            if (_target is null)
+            {
+                return;
+            }
+        }
+
+        bool confirmed = await dialogs.ConfirmAsync(
+            "导出标靶到设计页",
+            "把当前标靶渲染成 PNG，作为新图层加到设计页？\n文件会存到 ~/DiscImageStudio/calibration/，图层按内容环直径自动适配。",
+            "导出并去设计页", "取消");
         if (!confirmed)
         {
             return;
         }
 
-        Apply();
-        StatusMessage = "已填回设计图，内容环已更新。";
-        _shell.NavigateTo(Workspace.Design);
+        try
+        {
+            StatusMessage = L.T("正在渲染标靶 PNG…");
+            CalibrationTarget target = _target;
+            string directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "DiscImageStudio", "calibration");
+            Directory.CreateDirectory(directory);
+            string path = Path.Combine(directory, $"target-{DateTime.Now:yyyyMMdd-HHmmss}.png");
+
+            byte[] pixels = await Task.Run(() => CalibrationTargetRenderer.RenderGray(target, 2048));
+            RasterCodec.SavePng(path, 2048, 2048, pixels, grayscale: true);
+            _shell.Design.AddLayer(path);
+            _shell.NavigateTo(Workspace.Design);
+        }
+        catch (Exception exception)
+        {
+            StatusMessage = exception.Message;
+        }
     }
 
     [RelayCommand]

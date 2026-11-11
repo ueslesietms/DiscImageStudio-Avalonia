@@ -63,10 +63,10 @@
               </Border>
               <TextBlock Classes="micro" TextWrapping="Wrap"
                          Text="生成后保存 PNG，按现有导出/刻录流程刻到盘上；拍好照片再回到下面标注。" />
-              <Button Classes="ghost" Content="一键填回设计图" HorizontalAlignment="Stretch"
+              <Button Classes="ghost" Content="导出到设计页" HorizontalAlignment="Stretch"
                       Height="{StaticResource CompactHeight}" Padding="12,0"
                       Background="{DynamicResource Surface2Brush}"
-                      Command="{Binding FillIntoDesignCommand}" />
+                      Command="{Binding ExportTargetToDesignCommand}" />
             </StackPanel>
           </controls:SectionCard>
 
