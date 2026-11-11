@@ -172,6 +172,13 @@ public sealed class CalibrationPhotoCanvas : Control
 
     private static double Len(Point p) => Math.Sqrt(p.X * p.X + p.Y * p.Y);
 
+    private static readonly bool Trace = Environment.GetEnvironmentVariable("DIS_CALIB_TRACE") == "1";
+
+    private static void Log(string message)
+    {
+        if (Trace) Console.Error.WriteLine("[canvas] " + message);
+    }
+
     private double _zoom = 1;
     private Vector _pan;
     private bool _panning;
@@ -261,9 +268,9 @@ public sealed class CalibrationPhotoCanvas : Control
 
     public void ZoomAt(double factor, Point screen)
     {
-        Point world = ViewToWorld(screen);
+        Point world = screen.Transform(ComputeViewMatrix().Invert());
         _zoom = Math.Clamp(_zoom * factor, .2, 12);
-        Point after = WorldToView(world);
+        Point after = world.Transform(ComputeViewMatrix());
         _pan += screen - after;
         UpdateViewDescription();
         InvalidateVisual();
@@ -418,6 +425,7 @@ public sealed class CalibrationPhotoCanvas : Control
     public void DragTo(Point screen)
     {
         if (!Dragging) return;
+        Log($"drag screen={screen} world={ViewToWorld(screen)} start={_dragStart} original={_dragOriginal}");
         if (_ringDrag is { } ring)
         {
             double delta = Len(ViewToWorld(screen)) - _ringDragStartRadius;
@@ -448,6 +456,7 @@ public sealed class CalibrationPhotoCanvas : Control
         _traceDrag = null;
         _ringDrag = null;
         _hasMoved = false;
+        Log($"complete changed={changed} at={position}");
         if (changed && boundary is not null)
             Execute(BoundaryEditedCommand, new CalibrationBoundaryEdit(boundary.Boundary, boundary.Index, position.X, position.Y));
         if (changed && trace is not null)
@@ -566,6 +575,7 @@ public sealed class CalibrationPhotoCanvas : Control
         }
 
         if (!point.Properties.IsLeftButtonPressed) return;
+        Log($"press screen={position} world={ViewToWorld(position)} bounds={WorldBounds} size={Bounds.Size} zoom={_zoom:0.###} pan={_pan}");
         if (CanMarkArcLength) AddArcLengthPointAt(position);
         else if (ShowingClockPhoto)
         {
@@ -686,11 +696,11 @@ public sealed class CalibrationPhotoCanvas : Control
             var a = new Point(points[0].X, points[0].Y);
             var b = new Point(points[1].X, points[1].Y);
             var c = new Point(points[2].X, points[2].Y);
-            if (CircleThrough(a, b, c) is { } circle)
+            if (CircleThrough(a, b, c) is not null)
             {
                 Point sa = WorldToView(a), sb = WorldToView(b), sc = WorldToView(c);
-                double pixels = Dist(WorldToView(new Point(circle.Center.X + circle.Radius, circle.Center.Y)),
-                    WorldToView(circle.Center));
+                double pixels = 0;
+                if (CircleThrough(sa, sb, sc) is { } screenCircle) pixels = screenCircle.Radius;
                 // 屏幕 Y 向下：叉积为正说明 a→b→c 是顺时针。
                 double cross = (b.X - a.X) * (c.Y - b.Y) - (b.Y - a.Y) * (c.X - b.X);
                 SweepDirection sweep = cross > 0 ? SweepDirection.Clockwise : SweepDirection.CounterClockwise;
