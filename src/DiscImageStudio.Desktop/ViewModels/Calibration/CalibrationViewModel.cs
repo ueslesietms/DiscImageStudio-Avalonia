@@ -158,13 +158,16 @@ public partial class CalibrationViewModel : ObservableObject
     public ObservableCollection<CoarseSearchRange> CoarseSearchRangeChoices { get; } = new(CoarseSearchRanges);
     // Default references the listed instance: the class uses reference equality, so a
     // separate object would leave the ComboBox unselected until the user re-picks a range.
-    [ObservableProperty] private CoarseSearchRange _selectedCoarseSearchRange = CoarseSearchRanges[0];
+    [ObservableProperty] private CoarseSearchRange? _selectedCoarseSearchRange = CoarseSearchRanges[0];
+    /// <summary>实际使用的搜索范围：ComboBox 换集合时会把选中项置空，这里总会兜回一个有效项。</summary>
+    public CoarseSearchRange CurrentSearchRange => SelectedCoarseSearchRange
+        ?? (ActiveSearchRangeChoices.Count > 0 ? ActiveSearchRangeChoices[0] : CoarseSearchRanges[0]);
     private static readonly IReadOnlyList<CoarseSearchRange> CoarseSearchRanges =
         [new(L.T("自动（推荐）"), 0.02, Auto: true), new("±0.02 mm", 0.02),
          new("±0.1 mm", 0.1), new("±0.5 mm", 0.5)];
-    public string SearchRangeHeader => SelectedCoarseSearchRange.Auto
+    public string SearchRangeHeader => CurrentSearchRange.Auto
         ? L.T("搜索范围（自动）")
-        : L.F($"搜索范围（{SelectedCoarseSearchRange.Label}）");
+        : L.F($"搜索范围（{CurrentSearchRange.Label}）");
     private double _fitRangeMm = 0.02;
     private bool _fitRangeExpanded;
     [ObservableProperty] private bool _contourConfirmed;
@@ -593,10 +596,10 @@ public partial class CalibrationViewModel : ObservableObject
     private CalibrationFitOptions FitOptions(bool useRingSeed = true) => _loadedFitOptions with
     {
         SearchCenter = useRingSeed ? _acceptedRingSeed ?? _searchCenter : _searchCenter,
-        RadiusRangeMm = SelectedCoarseSearchRange.RadiusRangeMm,
+        RadiusRangeMm = CurrentSearchRange.RadiusRangeMm,
         FitDvdPitch = FitDvdPitch && _target?.HasSingleRadialLine != true && !HasBoundarySegments,
         AdaptiveRobustScale = true,
-        AutoRange = !HasBoundarySegments && SelectedCoarseSearchRange.Auto,
+        AutoRange = !HasBoundarySegments && CurrentSearchRange.Auto,
     };
 
     partial void OnFitDvdPitchChanged(bool value)
@@ -665,7 +668,7 @@ public partial class CalibrationViewModel : ObservableObject
             _isSolving = true;
             FitAttempt attempt = await Task.Run(() => target.HasBoundaryPattern
                 ? new FitAttempt(CalibrationBoundaryFitter.Fit(target, segments, options, token), options.RadiusRangeMm, false)
-                : FitWithAutoRange(target, traces, options, SelectedCoarseSearchRange.Auto, token), token);
+                : FitWithAutoRange(target, traces, options, CurrentSearchRange.Auto, token), token);
             CalibrationFitResult result = attempt.Result;
             _fitRangeMm = attempt.RangeMm;
             _fitRangeExpanded = attempt.Expanded;
@@ -861,9 +864,19 @@ public partial class CalibrationViewModel : ObservableObject
         RefreshApplyParametersState();
     }
 
-    partial void OnSelectedCoarseSearchRangeChanged(CoarseSearchRange value)
+    partial void OnSelectedCoarseSearchRangeChanged(CoarseSearchRange? value)
     {
+        if (value is null)
+        {
+            // 切到边界标定时列表换成另一组实例，ComboBox 会先把选中项清空；
+            // 立刻补一个有效项，否则随后的拟合/存记录会读到 null。
+            SelectedCoarseSearchRange = ActiveSearchRangeChoices.Count > 0
+                ? ActiveSearchRangeChoices[0] : CoarseSearchRanges[0];
+            return;
+        }
+
         OnPropertyChanged(nameof(SearchRangeHeader));
+        OnPropertyChanged(nameof(CurrentSearchRange));
         if (!_installing) InvalidateFit();
     }
 
