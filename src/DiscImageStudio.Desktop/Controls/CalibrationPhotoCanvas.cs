@@ -379,7 +379,7 @@ public sealed class CalibrationPhotoCanvas : Control
             if (hit is not null && best <= 12 * 12)
             {
                 _boundaryDrag = hit;
-                _dragStart = screen;
+                _dragStart = ViewToWorld(screen);
                 _dragOriginal = BoundaryDisplayPosition(hit);
                 _dragPosition = _dragOriginal;
                 _hasMoved = false;
@@ -401,7 +401,7 @@ public sealed class CalibrationPhotoCanvas : Control
             if (hit is not null && best <= 10 * 10)
             {
                 _traceDrag = hit;
-                _dragStart = screen;
+                _dragStart = ViewToWorld(screen);
                 _dragOriginal = TraceDisplayPosition(hit);
                 _dragPosition = _dragOriginal;
                 _hasMoved = false;
@@ -427,7 +427,7 @@ public sealed class CalibrationPhotoCanvas : Control
             return;
         }
 
-        _dragPosition = _dragOriginal + (ViewToWorld(screen) - ViewToWorld(_dragStart));
+        _dragPosition = _dragOriginal + (ViewToWorld(screen) - _dragStart);
         Rect bounds = ShowingRawPhoto && Image is { } photo
             ? new Rect(0, 0, photo.PixelSize.Width - 1, photo.PixelSize.Height - 1) : WorldBounds;
         _dragPosition = new Point(
