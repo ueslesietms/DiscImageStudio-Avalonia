@@ -20,6 +20,9 @@ public interface IDialogService
 
     Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel);
 
+    /// <summary>单行文本输入；取消返回 null。</summary>
+    Task<string?> PromptAsync(string title, string label, string initial = "");
+
     /// <summary>二次确认；返回用户是否点了确认。</summary>
     Task<bool> ConfirmAsync(string title, string message, string confirmText = "确定", string cancelText = "取消");
 }
@@ -96,6 +99,17 @@ public sealed class AvaloniaDialogService : IDialogService
 
         ProjectSettingsWindow dialog = new(viewModel);
         await dialog.ShowDialog(owner);
+    }
+
+    public async Task<string?> PromptAsync(string title, string label, string initial = "")
+    {
+        if (_owner is not Window owner)
+        {
+            return null;
+        }
+
+        var dialog = new PresetNameWindow(initial) { Title = title };
+        return await dialog.ShowDialog<string?>(owner);
     }
 
     public async Task<bool> ConfirmAsync(string title, string message, string confirmText = "确定",

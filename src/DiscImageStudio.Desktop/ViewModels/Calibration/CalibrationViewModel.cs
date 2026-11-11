@@ -46,7 +46,7 @@ public partial class CalibrationViewModel : ObservableObject
         _shell = shell;
         _state = state;
         CreateTargetCommand = new RelayCommand(CreateTarget, CanCreateTarget);
-        SaveAsPresetCommand = new RelayCommand(SaveAsPreset, () => !IsBusy);
+        SaveAsPresetCommand = new AsyncRelayCommand(SaveAsPresetAsync, () => !IsBusy);
         BrowseOutputCommand = new AsyncRelayCommand(BrowseOutputAsync, () => !IsBusy);
         ExportPngCommand = new AsyncRelayCommand(ExportPngAsync, CanUseStageTarget);
         GenerateImageCommand = new AsyncRelayCommand(GenerateImageAsync, CanUseStageTarget);
@@ -313,7 +313,7 @@ public partial class CalibrationViewModel : ObservableObject
 
     public RelayCommand CreateTargetCommand { get; }
     public IRelayCommand ReturnFromCalibrationCommand => _shell.ReturnFromCalibrationCommand;
-    public RelayCommand SaveAsPresetCommand { get; }
+    public IAsyncRelayCommand SaveAsPresetCommand { get; }
     internal Func<PresetSaveResult?>? ShowPresetSaveDialog { get; set; }
     public IAsyncRelayCommand BrowseOutputCommand { get; }
     public IAsyncRelayCommand ExportPngCommand { get; }
@@ -436,13 +436,18 @@ public partial class CalibrationViewModel : ObservableObject
         return p;
     }
 
-    private void SaveAsPreset()
+    private async Task SaveAsPresetAsync()
     {
         try
         {
             var p = ReadSetup();
-            PresetSaveResult result = ShowPresetSaveDialog?.Invoke()
-                ?? new PresetSaveResult($"自定义预设 {DateTime.Now:MMdd-HHmm}");
+            string? requested = ShowPresetSaveDialog is not null
+                ? ShowPresetSaveDialog()?.Name
+                : _shell.Dialogs is { } dialogs
+                    ? await dialogs.PromptAsync(L.T("Xaml.SaveAsPreset"), L.T("Xaml.PresetName"))
+                    : null;
+            if (string.IsNullOrWhiteSpace(requested)) return;
+            var result = new PresetSaveResult(requested.Trim());
             var family = p.Kind switch
             {
                 CalibrationDiscKind.Cd => OpticalDiscFamily.CompactDisc,
@@ -1173,6 +1178,7 @@ public partial class CalibrationViewModel : ObservableObject
         _fitStatusText = null;
         _statusMessage = message;
         _shell.BeginDockJob(L.T("Xaml.Calibration"), determinate: false);
+        _shell.CancelJobCommand = CancelCommand;
         _shell.ReportDockJob(message, 0);
         _shell.SetBusy(true);
         _shell.AppendLog(L.F($"[{DateTime.Now:HH:mm:ss}] 标定：{message}\n"));

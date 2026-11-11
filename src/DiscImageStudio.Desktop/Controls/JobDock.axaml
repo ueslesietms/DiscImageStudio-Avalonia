@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+             x:Class="DiscImageStudio.Desktop.Controls.JobDock"
+             x:DataType="vm:ShellViewModel">
+  <!-- 外壳底部的作业条：任务名 + 状态行 + 取消 + 展开日志。 -->
+  <Border Background="{DynamicResource Surface1Brush}"
+          BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0">
+    <Grid RowDefinitions="Auto,Auto">
+
+      <Grid Grid.Row="0" Height="36" Margin="14,0,10,0" ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+        <Ellipse Width="8" Height="8" VerticalAlignment="Center"
+                 Fill="{DynamicResource TextMutedBrush}" Margin="0,0,10,0" />
+        <TextBlock Grid.Column="1" Text="{Binding JobTitle}" FontSize="12" FontWeight="SemiBold"
+                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="2" Text="{Binding JobStatusText}" Classes="micro"
+                   VerticalAlignment="Center" MaxWidth="420" TextTrimming="CharacterEllipsis"
+                   ToolTip.Tip="{Binding JobStatusText}" Margin="0,0,12,0" />
+        <ProgressBar Grid.Column="3" Width="140" VerticalAlignment="Center" Margin="0,0,12,0"
+                     Minimum="0" Maximum="100" Height="4"
+                     IsIndeterminate="{Binding IsJobProgressIndeterminate}"
+                     Value="{Binding JobProgressValue, Mode=OneWay}"
+                     IsVisible="{Binding IsBusy}" />
+        <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+          <Button Classes="ghost" Height="24" Padding="10,0" Content="取消" FontSize="12"
+                  Command="{Binding CancelJobCommand}" IsVisible="{Binding HasCancelJob}" />
+          <Button Classes="ghost" Height="24" Padding="10,0" Content="任务日志" FontSize="12"
+                  Command="{Binding ToggleJobDockCommand}" IsVisible="{Binding !IsBusy}" />
+        </StackPanel>
+      </Grid>
+
+      <Border Grid.Row="1" Height="180" Background="{DynamicResource BackgroundBrush}"
+              BorderBrush="{DynamicResource DividerBrush}" BorderThickness="0,1,0,0"
+              IsVisible="{Binding IsJobDockExpanded}">
+        <Grid RowDefinitions="Auto,*">
+          <Grid Margin="14,6,10,4" ColumnDefinitions="*,Auto">
+            <TextBlock Text="任务日志" Classes="micro" VerticalAlignment="Center" />
+            <Button Grid.Column="1" Classes="ghost" Height="22" Padding="8,0" FontSize="11"
+                    Content="清空" Command="{Binding ClearLogCommand}" />
+          </Grid>
+          <ScrollViewer Grid.Row="1" Padding="14,0,14,8">
+            <SelectableTextBlock Text="{Binding LogText}" FontFamily="monospace" FontSize="12"
+                                 TextWrapping="Wrap" />
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

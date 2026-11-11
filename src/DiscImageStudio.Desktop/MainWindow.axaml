@@ -3,6 +3,7 @@
         xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
              xmlns:calibration="using:DiscImageStudio.Desktop.ViewModels.Calibration"
         xmlns:views="using:DiscImageStudio.Desktop.Views"
+        xmlns:controls="using:DiscImageStudio.Desktop.Controls"
         x:Class="DiscImageStudio.Desktop.MainWindow"
         x:DataType="vm:ShellViewModel"
         Title="Disc Image Studio"
@@ -221,7 +222,10 @@
         </Grid>
       </Border>
 
-      <ContentControl Grid.Column="1" Content="{Binding CurrentPage}" Focusable="False" />
+      <Grid Grid.Column="1" RowDefinitions="*,Auto">
+        <ContentControl Grid.Row="0" Content="{Binding CurrentPage}" Focusable="False" />
+        <controls:JobDock Grid.Row="1" IsVisible="{Binding IsJobDockVisible}" />
+      </Grid>
     </Grid>
   </Grid>
 
