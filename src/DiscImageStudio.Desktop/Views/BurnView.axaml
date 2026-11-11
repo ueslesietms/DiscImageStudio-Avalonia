@@ -73,7 +73,7 @@
       <Border Grid.Column="1" Classes="card" Width="380" Margin="16,0,0,0">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Text="刻录日志" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,8" />
-          <ScrollViewer Grid.Row="1">
+          <ScrollViewer x:Name="LogScroller" Grid.Row="1">
             <ItemsControl ItemsSource="{Binding Log}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate>

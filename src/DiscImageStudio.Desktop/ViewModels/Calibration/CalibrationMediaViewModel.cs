@@ -63,6 +63,9 @@ public partial class CalibrationViewModel
                 // rounded down to complete encoding blocks.
                 int alignment = family switch { "DVD" => 16, "BD" => 32, _ => 1 };
                 writable -= writable % alignment;
+                // 盘片设置窗口和内置预设都按「CD 总数 - 2」给 lead-out 留位置；
+                // 驱动报的剩余扇区口径不一定相同，这里取两者较小值保证两处一致。
+                if (family == "CD" && writable > 0 && sectors > 2) writable = Math.Min(writable, sectors - 2);
 
                 string value = sectors.ToString(CultureInfo.InvariantCulture);
                 // Recorded media can still describe geometry for a future blank

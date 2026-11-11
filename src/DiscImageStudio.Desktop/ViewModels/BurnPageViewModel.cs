@@ -29,7 +29,12 @@ public partial class BurnPageViewModel : ObservableObject
                 OnPropertyChanged(nameof(SourcePath));
             }
         };
-        _shell.State.PropertyChanged += (_, _) => OnPropertyChanged(nameof(SourcePath));
+        _shell.State.PropertyChanged += (_, _) =>
+        {
+            OnPropertyChanged(nameof(SourcePath));
+            OnPropertyChanged(nameof(CanBurn));
+            BurnCommand.NotifyCanExecuteChanged();
+        };
         _ = RefreshDevicesAsync();
     }
 

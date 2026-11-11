@@ -992,12 +992,26 @@ public partial class CalibrationViewModel : ObservableObject
         try
         {
             path = Path.GetFullPath(OutputPath.Trim());
-            string extension = Path.GetExtension(path).ToLowerInvariant();
-            bool discImage = target.Parameters.Kind is CalibrationDiscKind.Dvd or CalibrationDiscKind.BluRay;
-            if (discImage ? extension != ".iso" : extension is not (".wav" or ".raw"))
-                throw new ArgumentException(L.T("请选择 DVD/BD 的 .iso 或 CD 的 .wav / .raw 输出文件。"));
+            ValidateImagePath(target, path);
         }
         catch (Exception ex) { Report(ex); return; }
+        await GenerateImageToAsync(path);
+    }
+
+    private static string ImageExtension(CalibrationTarget target) =>
+        target.Parameters.Kind is CalibrationDiscKind.Dvd or CalibrationDiscKind.BluRay ? ".iso" : ".wav";
+
+    private static void ValidateImagePath(CalibrationTarget target, string path)
+    {
+        string extension = Path.GetExtension(path).ToLowerInvariant();
+        bool discImage = target.Parameters.Kind is CalibrationDiscKind.Dvd or CalibrationDiscKind.BluRay;
+        if (discImage ? extension != ".iso" : extension is not (".wav" or ".raw"))
+            throw new ArgumentException(L.T("请选择 DVD/BD 的 .iso 或 CD 的 .wav / .raw 输出文件。"));
+    }
+
+    private async Task GenerateImageToAsync(string path)
+    {
+        if (_target is not { } target) return;
         var session = Session();
         await RunAsync(L.T("正在生成标定文件…"), async token =>
         {
@@ -1127,9 +1141,48 @@ public partial class CalibrationViewModel : ObservableObject
 
     private async Task PrepareStreamBurnAsync()
     {
-        if (!CanUseStageTarget() || _target is null) return;
+        if (!CanUseStageTarget() || _target is not { } target) return;
         if (!await EnsureSessionSavedForBurnAsync()) return;
-        // The standalone recorder takes its material from this frozen target.
+
+        // 桌面刻录页只认文件源：先把当前标靶生成成镜像/音轨，再把路径交给刻录页，
+        // 这样跳转过去就能直接选刻录机开刻，而不是停在空源上。
+        string path = OutputPath.Trim();
+        if (path.Length == 0 || !File.Exists(path))
+        {
+            string extension = ImageExtension(target);
+            string directory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                "DiscImageStudio", "calibration");
+            Directory.CreateDirectory(directory);
+            path = Path.Combine(directory, $"calibration-{target.Id[..8]}{extension}");
+            try
+            {
+                ValidateImagePath(target, path);
+            }
+            catch (Exception ex)
+            {
+                Report(ex);
+                return;
+            }
+
+            await GenerateImageToAsync(path);
+            if (_target is null || !File.Exists(path)) return;
+            OutputPath = path;
+        }
+
+        switch (_shell.CurrentProject?.Family)
+        {
+            case OpticalDiscFamily.Dvd:
+                _state.DvdOutputPath = path;
+                break;
+            case OpticalDiscFamily.BluRay:
+                _state.BdOutputPath = path;
+                break;
+            default:
+                _state.CdOutputPath = path;
+                break;
+        }
+
         _shell.NavigateTo(Workspace.Burn);
     }
 
