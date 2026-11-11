@@ -598,6 +598,34 @@ public partial class CalibrationPageViewModel : ObservableObject
         }
     }
 
+    /// <summary>把测量出的内外半径写回工程，并让设计页按新参数重排内容环。带二次确认。</summary>
+    [RelayCommand]
+    private async Task FillIntoDesignAsync()
+    {
+        if (!HasResult)
+        {
+            StatusMessage = "还没有测量结果，先在上面标点并点“测量”。";
+            return;
+        }
+
+        if (_shell.Dialogs is not { } dialogs)
+        {
+            return;
+        }
+
+        string message = string.Create(CultureInfo.InvariantCulture,
+            $"把内半径 {MeasuredInnerRadiusMm:0.###} mm、外半径 {MeasuredOuterRadiusMm:0.###} mm 写进当前工程？\n设计页的内容环会按新参数重排，已有的图层位置和缩放不变。");
+        bool confirmed = await dialogs.ConfirmAsync("填回设计图", message, "填回", "取消");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        Apply();
+        StatusMessage = "已填回设计图，内容环已更新。";
+        _shell.NavigateTo(Workspace.Design);
+    }
+
     [RelayCommand]
     private void GoBack() => _shell.NavigateTo(Workspace.Design);
 }

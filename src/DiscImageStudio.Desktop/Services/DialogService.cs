@@ -19,6 +19,9 @@ public interface IDialogService
     Task ShowDiscSettingsAsync(DiscSettingsViewModel viewModel);
 
     Task ShowProjectSettingsAsync(ProjectSettingsViewModel viewModel);
+
+    /// <summary>二次确认；返回用户是否点了确认。</summary>
+    Task<bool> ConfirmAsync(string title, string message, string confirmText = "确定", string cancelText = "取消");
 }
 
 /// <summary>Avalonia StorageProvider 实现，把 WPF 的过滤器字符串翻译成文件类型。</summary>
@@ -93,6 +96,18 @@ public sealed class AvaloniaDialogService : IDialogService
 
         ProjectSettingsWindow dialog = new(viewModel);
         await dialog.ShowDialog(owner);
+    }
+
+    public async Task<bool> ConfirmAsync(string title, string message, string confirmText = "确定",
+        string cancelText = "取消")
+    {
+        if (_owner is not Window owner)
+        {
+            return false;
+        }
+
+        ConfirmWindow dialog = new(title, message, confirmText, cancelText);
+        return await dialog.ShowDialog<bool>(owner);
     }
 
     public static FilePickerFileType[] ParseFilter(string filter)

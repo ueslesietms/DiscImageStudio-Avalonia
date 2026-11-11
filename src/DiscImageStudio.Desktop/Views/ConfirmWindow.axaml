@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DiscImageStudio.Desktop.ViewModels"
+        x:Class="DiscImageStudio.Desktop.Views.ConfirmWindow"
+        Title="确认"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="{DynamicResource BackgroundBrush}"
+        FontFamily="{StaticResource AppFontFamily}">
+  <Grid RowDefinitions="*,Auto" Margin="20" MinHeight="120">
+    <StackPanel Spacing="10">
+      <TextBlock x:Name="TitleText" Classes="title" FontSize="16" Text="确认" />
+      <TextBlock x:Name="MessageText" Classes="secondary" TextWrapping="Wrap" />
+    </StackPanel>
+
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,18,0,0">
+      <Button Classes="ghost" x:Name="CancelButton" Content="取消"
+              Height="{StaticResource ButtonHeight}" Padding="16,0" Click="Cancel_Click" />
+      <Button Classes="primary" x:Name="ConfirmButton" Content="确定"
+              Click="Confirm_Click" />
+    </StackPanel>
+  </Grid>
+</Window>
