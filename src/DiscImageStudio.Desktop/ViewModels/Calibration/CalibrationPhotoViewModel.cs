@@ -104,6 +104,7 @@ public partial class CalibrationViewModel
         ShowTargetPreview = false;
         OnPropertyChanged(nameof(StepTwoState));
         OnPropertyChanged(nameof(StepThreeState));
+        NotifyStepStates();
         OnPropertyChanged(nameof(IsRingStep));
         OnPropertyChanged(nameof(IsClockStep));
         OnPropertyChanged(nameof(IsRadialArcStep));

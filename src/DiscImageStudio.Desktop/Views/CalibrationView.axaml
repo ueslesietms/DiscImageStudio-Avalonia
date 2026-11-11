@@ -134,7 +134,7 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="1" FontWeight="SemiBold" />
                 <TextBlock Text="{loc:Loc Xaml.CreateCalibrationDisc}" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding StepOneState}" Classes="micro" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StepOneStateText}" Classes="micro" VerticalAlignment="Center" />
               </StackPanel>
             </Expander.Header>
             <StackPanel Spacing="6" IsEnabled="{Binding !IsBusy}">
@@ -231,7 +231,7 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="2" FontWeight="SemiBold" />
                 <TextBlock Text="{loc:Loc Xaml.RectifyPhoto}" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding StepTwoState}" Classes="micro" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StepTwoStateText}" Classes="micro" VerticalAlignment="Center" />
               </StackPanel>
             </Expander.Header>
             <StackPanel Spacing="6">
@@ -257,7 +257,7 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="3" FontWeight="SemiBold" />
                 <TextBlock Text="{Binding StepThreeTitle}" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding StepThreeState}" Classes="micro" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding StepThreeStateText}" Classes="micro" VerticalAlignment="Center" />
               </StackPanel>
             </Expander.Header>
             <StackPanel Spacing="6">

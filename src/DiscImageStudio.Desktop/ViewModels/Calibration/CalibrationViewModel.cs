@@ -270,6 +270,24 @@ public partial class CalibrationViewModel : ObservableObject
 
     public StepCardState StepThreeState => IsTraceStep ? StepCardState.Active : StepCardState.Pending;
 
+    public string StepOneStateText => StateText(StepOneState);
+    public string StepTwoStateText => StateText(StepTwoState);
+    public string StepThreeStateText => StateText(StepThreeState);
+
+    private static string StateText(Controls.StepCardState state) => state switch
+    {
+        Controls.StepCardState.Active => "进行中",
+        Controls.StepCardState.Done => "已完成",
+        _ => "待开始",
+    };
+
+    private void NotifyStepStates()
+    {
+        OnPropertyChanged(nameof(StepOneStateText));
+        OnPropertyChanged(nameof(StepTwoStateText));
+        OnPropertyChanged(nameof(StepThreeStateText));
+    }
+
     [ObservableProperty] private bool _stepOneExpanded = true;
     [ObservableProperty] private bool _stepTwoExpanded;
     [ObservableProperty] private bool _stepThreeExpanded;

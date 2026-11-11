@@ -66,6 +66,7 @@ public partial class CalibrationViewModel
         OnPropertyChanged(nameof(ApplyTraceLabel));
         OnPropertyChanged(nameof(CreateTargetLabel));
         OnPropertyChanged(nameof(StepThreeTitle));
+        NotifyStepStates();
     }
 
     private void RestoreStage(CalibrationSession session)
