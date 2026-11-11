@@ -15,6 +15,10 @@ Disc Image Studio 是一個多平台的光碟表面圖像產生與燒錄工具�
 ![歡迎貢獻](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)
 [![授權：GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue?style=flat-square)](LICENSE)
 
+<a href="https://trendshift.io/repositories/332271?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-332271" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/332271" alt="JiaFeiMiao-K-Cat%2FDiscImageStudio | Trendshift" width="250" height="55"/></a>
+
+<a href="https://discord.gg/7nDs9H3r"><img alt="加入 Disc Image Studio 的 Discord 社群" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+
 </div>
 
 ---
@@ -43,7 +47,7 @@ Disc Image Studio 可將一張圖片轉換為符合 CD、DVD 與單層 BD-R 光�
 
 ## 快速開始
 
-Windows 下載 `win-x64.exe` 後可直接執行。Linux 或 macOS 請下載與 CPU 相符的**實驗性 CLI** 壓縮檔，解壓縮後執行 `./disc-image-studio --help`。各發布套件均包含 .NET 執行階段。 [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
+Windows x64 請下載以 `win-x64.exe` 結尾的檔案；Windows 11 ARM64 請下載以 `win-arm64.exe` 結尾的原生版本，均可直接執行。Linux 或 macOS 請下載與 CPU 相符的**實驗性 CLI** 壓縮檔，解壓縮後執行 `./disc-image-studio --help`。各發布套件均包含 .NET 執行階段。 [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
 
 ### 1. 新增專案
 
@@ -92,7 +96,7 @@ Disc Image Studio 提供一套智慧且精準的輔助校準流程。相較於�
 
 ## 系統與裝置需求
 
-- 桌面版需要 Windows 10 2004（2004/20H1，19041）以上版本，或 Windows 11。
+- x64 桌面版需要 Windows 10 2004（2004/20H1，19041）以上版本，或 Windows 11；ARM64 桌面版需要 Windows 11。ARM64 原生 CI 涵蓋軟體自我測試與 GUI 截圖，尚未驗證實體光碟燒錄。
 - 建置：.NET 10 SDK（`global.json` 鎖定 10.0.x）；自行建置的非獨立部署 GUI 需要 .NET 10 Windows 桌面執行階段。Release EXE 已包含執行階段，無須另外安裝 .NET。
 - 「即時燒錄」功能需要 Windows 可辨識的 CD / DVD / BD 燒錄機與空白光碟；BD-R 需要支援循序寫入的單層空白光碟。
 
@@ -202,7 +206,7 @@ CD 共通編碼部分也參考了 [ECMA-130，第 2 版（CD-ROM，1996）](http
 
 ## 隱私與安全
 
-- Disc Image Studio 不連網、不上傳檔案，也不收集遙測資料，詳見[隱私權政策](PRIVACY.md)。
+- 除在「關於」頁面手動檢查更新時存取 GitHub Releases 外，Disc Image Studio 不連網、不上傳檔案，也不收集遙測資料，詳見[隱私權政策](PRIVACY.md)。
 - 發現安全問題時，請勿在公開 Issue 中揭露；請依[安全政策](SECURITY.md)使用 GitHub 私密回報。
 
 ## 貢獻

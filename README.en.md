@@ -15,6 +15,10 @@ Disc Image Studio is a multi-platform disc-surface image generation and burning 
 ![Contributions welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue?style=flat-square)](LICENSE)
 
+<a href="https://trendshift.io/repositories/332271?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-332271" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/332271" alt="JiaFeiMiao-K-Cat%2FDiscImageStudio | Trendshift" width="250" height="55"/></a>
+
+<a href="https://discord.gg/7nDs9H3r"><img alt="Join the Disc Image Studio Discord community" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+
 </div>
 
 ---
@@ -43,7 +47,7 @@ Disc Image Studio converts an image into data that meets the physical-layer cons
 
 ## Quick Start
 
-On Windows, download and run `win-x64.exe`. On Linux or macOS, download the **experimental CLI** archive for your CPU, extract it and run `./disc-image-studio --help`. Each release package includes the .NET runtime. [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
+On Windows x64, download and run the file ending in `win-x64.exe`; on Windows 11 ARM64, choose the native `win-arm64.exe` build. On Linux or macOS, download the **experimental CLI** archive for your CPU, extract it and run `./disc-image-studio --help`. Each release package includes the .NET runtime. [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
 
 ### 1. Create a Project
 
@@ -51,7 +55,7 @@ Choose CD, DVD, or Blu-ray on the home page, specify an output location, and cre
 
 ### 2. Design the Disc Surface
 
-Import an image on the Design page, arrange it using layers, and adjust dithering, gamma, brightness, and grayscale levels in the **Tone** panel on the right.
+Click **Import images** on the Design page, or drag one or multiple images from Explorer onto the page. Arrange them using layers, and adjust dithering, gamma, brightness, and grayscale levels in the **Tone** panel on the right.
 
 ### 3. Preview and Export
 
@@ -92,7 +96,7 @@ See the [assisted calibration guide](docs/CALIBRATION.md) for the workflow and p
 
 ## System and Hardware Requirements
 
-- The desktop app requires Windows 10 2004 (2004/20H1, 19041) or later, or Windows 11.
+- The x64 desktop app requires Windows 10 2004 (2004/20H1, 19041) or later, or Windows 11. The ARM64 app requires Windows 11. Native ARM64 CI covers software self-tests and GUI snapshots; physical disc burning on ARM64 remains unverified.
 - Building: .NET 10 SDK (`global.json` pins 10.0.x). A non-self-contained GUI built from source requires the .NET 10 Windows Desktop Runtime. The Release EXE includes the runtime, so a separate .NET installation is unnecessary.
 - Live burning requires a CD / DVD / BD recorder recognized by Windows and blank media. BD-R requires a blank single-layer disc that supports sequential writing.
 
@@ -202,7 +206,7 @@ The common CD encoding components also reference [ECMA-130, 2nd edition (CD-ROM,
 
 ## Privacy and Security
 
-- Disc Image Studio does not access the network, upload files, or collect telemetry. See the [privacy policy](PRIVACY.md).
+- Except when the user manually checks for updates on the About page, Disc Image Studio does not access the network, upload files, or collect telemetry. See the [privacy policy](PRIVACY.md).
 - Do not disclose security issues in public issues. Follow the [security policy](SECURITY.md) and use GitHub’s private reporting feature.
 
 ## Contributing

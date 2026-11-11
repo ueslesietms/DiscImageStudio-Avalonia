@@ -15,6 +15,10 @@ Disc Image Studio は、あらゆる記録ドライブを使って、あらゆ�
 ![コントリビューション歓迎](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)
 [![ライセンス：GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue?style=flat-square)](LICENSE)
 
+<a href="https://trendshift.io/repositories/332271?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-332271" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/332271" alt="JiaFeiMiao-K-Cat%2FDiscImageStudio | Trendshift" width="250" height="55"/></a>
+
+<a href="https://discord.gg/7nDs9H3r"><img alt="Disc Image Studio の Discord コミュニティに参加" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+
 </div>
 
 ---
@@ -43,7 +47,7 @@ Disc Image Studio は、1 枚の画像を CD、DVD、片面一層 BD-R ディス
 
 ## クイックスタート
 
-Windows では `win-x64.exe` で終わるファイルをダウンロードして実行します。Linux または macOS では、CPU に合った**実験的な CLI** のアーカイブを展開し、`./disc-image-studio --help` を実行してください。いずれも .NET ランタイムを同梱しています。[GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
+Windows x64 では `win-x64.exe`、Windows 11 ARM64 ではネイティブ版の `win-arm64.exe` で終わるファイルをダウンロードして実行します。Linux または macOS では、CPU に合った**実験的な CLI** のアーカイブを展開し、`./disc-image-studio --help` を実行してください。いずれも .NET ランタイムを同梱しています。[GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
 
 ### 1. プロジェクトを新規作成
 
@@ -92,7 +96,7 @@ Disc Image Studio は、インテリジェントで高精度な補助キャリ�
 
 ## システム・デバイス要件
 
-- デスクトップ版には Windows 10 2004（2004/20H1、19041）以降、または Windows 11 が必要です。
+- x64 デスクトップ版には Windows 10 2004（2004/20H1、19041）以降、または Windows 11 が必要です。ARM64 版には Windows 11 が必要です。ARM64 のネイティブ CI はソフトウェアの自己テストと GUI スクリーンショットを確認しますが、実ディスクへの書き込みは未検証です。
 - ビルド：.NET 10 SDK（`global.json` で 10.0.x に固定）。自分でビルドした非自己完結型の GUI には .NET 10 Windows デスクトップランタイムが必要です。Release EXE にはランタイムが同梱されているため、.NET を別途インストールする必要はありません。
 - 「即時書き込み」機能には、Windows が認識できる CD / DVD / BD 書き込みドライブと空のディスクが必要です。BD-R にはシーケンシャル書き込みに対応した空の片面一層ディスクが必要です。
 
@@ -202,7 +206,7 @@ CD の共通エンコード部分については、[ECMA-130、第 2 版（CD-RO
 
 ## プライバシーとセキュリティ
 
-- Disc Image Studio はネットワークに接続せず、ファイルをアップロードせず、テレメトリも収集しません。詳しくは[プライバシーポリシー](PRIVACY.md)をご覧ください。
+- ユーザーが「バージョン情報」ページで手動で更新を確認する場合を除き、Disc Image Studio はネットワークに接続せず、ファイルをアップロードせず、テレメトリも収集しません。詳しくは[プライバシーポリシー](PRIVACY.md)をご覧ください。
 - セキュリティ上の問題を発見した場合は、公開 Issue で開示せず、[セキュリティポリシー](SECURITY.md)に従って GitHub のプライベート報告機能をご利用ください。
 
 ## コントリビューション

@@ -10,6 +10,13 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
+if (args is ["--test-image-drop"])
+{
+    ImageDropTests.Run();
+    LayerPanelTests.Run();
+    return;
+}
+
 if (args is ["--test-parameter-persistence"])
 {
     PresetApplicationTests.Run();
@@ -152,6 +159,7 @@ BurnStreamDiagnosticsTests.Run();
 BurnProgressDisplayTests.Run();
 OpticalBurnOperationGateTests.Run();
 MediaSectorCountTests.Run();
+OpticalDriveProbeTests.Run();
 BluRaySequentialBurnTests.Run();
 BluRayFlushDiagnosticsTests.Run();
 BluRaySequentialWriterTests.Run();
@@ -174,6 +182,7 @@ DesignComposerTests.Run();
 CdAudioCompatibilityTests.Run();
 CdParallelAudioTests.Run();
 CdDataImageTests.Run();
+VolumeLabelTests.Run();
 CdParallelDataTests.Run();
 CdDataBurnTests.Run();
 CdDataDaoWorkflowTests.Run();
@@ -227,6 +236,7 @@ CalibrationPhotoTests.Run();
 CalibrationPhotoCanvasTests.Run();
 DesignCanvasZoomTests.Run();
 LayerPanelTests.Run();
+ImageDropTests.Run();
 CalibrationBurnWorkflowTests.Run();
 CalibrationBurnSourceTests.Run();
 BurnJobDockTests.Run();
@@ -247,6 +257,7 @@ DesignDataRegionTests.Run();
 LocalizationTests.Run();
 ThemePaletteTests.Run();
 TempFilesCacheTests.Run();
+UpdateTests.Run();
 RelocalizationTests.Run();
 CalibrationReturnButtonTests.Run();
 BurnWriteSpeedSelectionTests.Run();

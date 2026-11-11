@@ -46,6 +46,10 @@ Disc Image Studio 是一个多平台的光盘盘面图像生成与刻录工具�
 ![贡献欢迎](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)
 [![许可证：GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue?style=flat-square)](LICENSE)
 
+<a href="https://trendshift.io/repositories/332271?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-332271" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/332271" alt="JiaFeiMiao-K-Cat%2FDiscImageStudio | Trendshift" width="250" height="55"/></a>
+
+<a href="https://discord.gg/7nDs9H3r"><img alt="加入 Disc Image Studio 的 Discord 社区" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+
 </div>
 
 ---
@@ -74,7 +78,7 @@ Disc Image Studio 可将一张图片转换成符合 CD、DVD 与单层 BD-R 光�
 
 ## 快速开始
 
-Windows 下载 `win-x64.exe` 后可直接运行。Linux 或 macOS 请下载与 CPU 匹配的**实验性 CLI** 压缩包，解压后运行 `./disc-image-studio --help`。这些发布包均自带 .NET 运行时。 [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
+Windows x64 下载以 `win-x64.exe` 结尾的文件；Windows 11 ARM64 下载以 `win-arm64.exe` 结尾的原生版本，均可直接运行。Linux 或 macOS 请下载与 CPU 匹配的**实验性 CLI** 压缩包，解压后运行 `./disc-image-studio --help`。这些发布包均自带 .NET 运行时。 [GitHub Releases](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
 
 ### 1. 新建工程
 
@@ -82,7 +86,7 @@ Windows 下载 `win-x64.exe` 后可直接运行。Linux 或 macOS 请下载与 C
 
 ### 2. 设计盘面
 
-在设计页导入图片，用图层完成排版，并在右栏「影调」模块调整抖动、伽马、亮度与灰阶档位。
+在设计页点击「导入图片」，或从资源管理器将单张／多张图片拖入设计页，用图层完成排版，并在右栏「影调」模块调整抖动、伽马、亮度与灰阶档位。
 
 ### 3. 预览与导出
 
@@ -123,7 +127,7 @@ Disc Image Studio 提供粗标定、边界标定和精细标定流程，通过�
 
 ## 系统与设备要求
 
-- 桌面版需要 Windows 10 2004（2004/20H1，19041）及以上，或 Windows 11。
+- x64 桌面版需要 Windows 10 2004（2004/20H1，19041）及以上，或 Windows 11；ARM64 桌面版需要 Windows 11。ARM64 的原生 CI 覆盖软件自检与 GUI 截图，尚未验证实盘刻录。
 - 构建：.NET 10 SDK（`global.json` 锁定 10.0.x）；自行构建的非自包含 GUI 需要 .NET 10 Windows 桌面运行时。Release EXE 已包含运行时，无需另行安装 .NET。
 - “即时刻录”功能需要一台 Windows 可识别的 CD / DVD / BD 刻录机与空白盘片；BD-R 需要支持顺序写入的单层空白盘。
 
@@ -234,7 +238,7 @@ CD 公共编码部分还参考了 [ECMA-130，第 2 版（CD-ROM，1996）](http
 
 ## 隐私与安全
 
-- Disc Image Studio 不联网、不上传文件、不收集遥测，详见[隐私政策](PRIVACY.md)。
+- Disc Image Studio 除您在关于页手动检查更新时访问 GitHub Releases 外，不联网、不上传文件、不收集遥测，详见[隐私政策](PRIVACY.md)。
 - 发现安全问题请不要在公开 Issue 中披露，按[安全政策](SECURITY.md)使用 GitHub 私密报告。
 
 ## 贡献

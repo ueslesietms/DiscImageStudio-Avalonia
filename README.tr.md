@@ -15,6 +15,10 @@ Disc Image Studio, herhangi bir kayıt sürücüsüyle herhangi bir DVD / CD / t
 ![Contributions welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/License-GPL--3.0--or--later-blue?style=flat-square)](LICENSE)
 
+<a href="https://trendshift.io/repositories/332271?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-332271" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/332271" alt="JiaFeiMiao-K-Cat%2FDiscImageStudio | Trendshift" width="250" height="55"/></a>
+
+<a href="https://discord.gg/7nDs9H3r"><img alt="Disc Image Studio Discord topluluğuna katılın" src="https://img.shields.io/badge/Join%20us%20on%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" height="40"></a>
+
 </div>
 
 ---
@@ -43,7 +47,7 @@ Disc Image Studio, standart bir görseli CD, DVD ve tek katmanlı BD-R disklerin
 
 ## Hızlı Başlangıç
 
-Windows üzerinde `win-x64.exe` dosyasını indirip çalıştırın. Linux veya macOS üzerinde, işlemcinize uygun **deneysel CLI** arşivini indirin, çıkartın ve `./disc-image-studio --help` komutunu çalıştırın. Her sürüm paketi .NET çalışma zamanını içerir: [GitHub Sürümleri (Releases)](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
+Windows x64 için adı `win-x64.exe` ile, Windows 11 ARM64 için ise `win-arm64.exe` ile biten yerel sürümü indirip çalıştırın. Linux veya macOS üzerinde, işlemcinize uygun **deneysel CLI** arşivini indirin, çıkartın ve `./disc-image-studio --help` komutunu çalıştırın. Her sürüm paketi .NET çalışma zamanını içerir: [GitHub Sürümleri (Releases)](https://github.com/JiaFeiMiao-K-Cat/DiscImageStudio/releases)
 
 ### 1. Proje Oluşturun
 
@@ -91,7 +95,7 @@ Disc Image Studio, akıllı ve hassas bir destekli kalibrasyon iş akışı suna
 
 ## Sistem ve Donanım Gereksinimleri
 
-- Masaüstü uygulaması Windows 10 2004 (2004/20H1, 19041) veya üstü ya da Windows 11 gerektirir.
+- x64 masaüstü uygulaması Windows 10 2004 (2004/20H1, 19041) veya üstü ya da Windows 11 gerektirir. ARM64 sürümü Windows 11 gerektirir. Yerel ARM64 CI, yazılım öz testlerini ve GUI ekran görüntülerini kapsar; fiziksel diske yazma henüz doğrulanmamıştır.
 - Derleme: .NET 10 SDK (`global.json` 10.0.x sürümünü sabitler). Kaynak koddan derlenen bağımsız olmayan bir GUI, .NET 10 Windows Masaüstü Çalışma Zamanı (Windows Desktop Runtime) gerektirir. Dağıtılan Release EXE dosyası çalışma zamanını kendi içinde barındırdığı için harici bir .NET kurulumu gerektirmez.
 - Akışla yazma, Windows tarafından tanınan bir CD / DVD / BD yazıcı ve boş medya gerektirir. BD-R için sıralı yazmayı (sequential writing) destekleyen boş tek katmanlı bir disk gerekir.
 
@@ -201,7 +205,7 @@ Ortak CD kodlama bileşenleri ayrıca [ECMA-130, 2. baskı (CD-ROM, 1996)](https
 
 ## Gizlilik ve Güvenlik
 
-- Disc Image Studio ağa erişmez, dosya yüklemez veya telemetri verisi toplamaz. Bkz. [Gizlilik Politikası](PRIVACY.md).
+- Kullanıcı Hakkında sayfasından güncellemeleri elle denetlemediği sürece Disc Image Studio ağa erişmez, dosya yüklemez veya telemetri verisi toplamaz. Bkz. [Gizlilik Politikası](PRIVACY.md).
 - Güvenlik açıklarını herkese açık sorun (issue) kayıtlarında paylaşmayın. [Güvenlik Politikasını](SECURITY.md) izleyin ve GitHub'ın özel güvenlik bildirimi özelliğini kullanın.
 
 ## Katkıda Bulunma
