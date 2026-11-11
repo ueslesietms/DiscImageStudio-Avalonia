@@ -35,6 +35,11 @@
     <ProjectReference Include="..\DiscImageStudio.Iso\DiscImageStudio.Iso.csproj" />
   </ItemGroup>
 
+  <!-- Windows 目标才引用 IMAPI 刻录实现（net10.0-windows）。 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <ProjectReference Include="..\DiscImageStudio.Burning\DiscImageStudio.Burning.csproj" />
+  </ItemGroup>
+
   <!-- 字体与图标沿用 WPF 项目的资源，不复制副本；Avalonia 侧直接以 avares 引用。 -->
   <ItemGroup>
     <AvaloniaResource Include="..\DiscImageStudio.App\Assets\Fonts\*.ttf" Link="Assets\Fonts\%(Filename)%(Extension)" />
