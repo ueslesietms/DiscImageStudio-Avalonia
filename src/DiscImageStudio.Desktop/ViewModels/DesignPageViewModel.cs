@@ -178,6 +178,27 @@ public partial class DesignPageViewModel : ObservableObject
         }
     }
 
+    /// <summary>外圈文件的内移出血：把数据区末尾收到介质标准容量的约 95%，避开最外缘。</summary>
+    public bool OuterRingBleed
+    {
+        get => IsCd ? State.CdOuterRingBleed : IsDvd ? State.DvdOuterRingBleed : State.BdOuterRingBleed;
+        set
+        {
+            if (IsCd)
+            {
+                State.CdOuterRingBleed = value;
+            }
+            else if (IsDvd)
+            {
+                State.DvdOuterRingBleed = value;
+            }
+            else
+            {
+                State.BdOuterRingBleed = value;
+            }
+        }
+    }
+
     public bool FilesAtOuterRing
     {
         get => IsCd ? State.CdFilesAtOuterRing : IsDvd ? State.DvdFilesAtOuterRing : State.BdFilesAtOuterRing;
@@ -298,6 +319,7 @@ public partial class DesignPageViewModel : ObservableObject
         OnPropertyChanged(nameof(IsBluRay));
         OnPropertyChanged(nameof(DataDirectory));
         OnPropertyChanged(nameof(FilesAtOuterRing));
+        OnPropertyChanged(nameof(OuterRingBleed));
         OnPropertyChanged(nameof(HasDataFiles));
     }
 

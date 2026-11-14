@@ -104,6 +104,10 @@
                                   ButtonLabel="浏览…" Command="{Binding BrowseDataCommand}" />
               <CheckBox Content="放到外圈" IsChecked="{Binding FilesAtOuterRing}"
                         IsVisible="{Binding HasDataFiles}" />
+              <CheckBox Content="{loc:Loc Xaml.OuterRingBleed}" IsChecked="{Binding OuterRingBleed, Mode=TwoWay}"
+                        IsVisible="{Binding FilesAtOuterRing}" />
+              <TextBlock Classes="micro" TextWrapping="Wrap" IsVisible="{Binding FilesAtOuterRing}"
+                         Text="{loc:Loc Xaml.OuterRingBleedHint}" />
               <TextBlock Classes="micro" TextWrapping="Wrap"
                          Text="整个文件夹原样写进盘里。CD 不留文件就走音轨模式。" />
             </StackPanel>
