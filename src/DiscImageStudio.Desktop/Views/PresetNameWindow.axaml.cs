@@ -20,7 +20,7 @@ public partial class PresetNameWindow : Window
 
     private void Cancel_Click(object? sender, RoutedEventArgs e) => Close(null);
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
     {
         base.OnKeyDown(e);
         if (e.Key == Key.Escape)

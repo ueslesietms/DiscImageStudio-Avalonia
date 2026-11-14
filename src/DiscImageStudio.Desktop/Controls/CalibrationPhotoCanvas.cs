@@ -1,6 +1,8 @@
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Windows.Input;
+using Key = Avalonia.Input.Key;
+using Cursor = Avalonia.Input.Cursor;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -646,7 +648,7 @@ public sealed class CalibrationPhotoCanvas : Control
         e.Handled = true;
     }
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    protected override void OnKeyDown(Avalonia.Input.KeyEventArgs e)
     {
         base.OnKeyDown(e);
         if (CanMarkArcLength && e.Key is Key.Back or Key.Delete)
